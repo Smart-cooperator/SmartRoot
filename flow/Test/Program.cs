@@ -11,10 +11,10 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            Command.Run(@"C:\Users\v-fengzhou\source\repos\wae", @"CreatePackage.cmd Debug", out int exitCode, out string standOutput);
+            //Command.Run(@"C:\Users\v-fengzhou\source\repos\wae", @"CreatePackage.cmd Debug", out int exitCode, out string standOutput, out string errorOutput);
 
-            Console.WriteLine($"exitCode:{Environment.NewLine}{exitCode}");
-            Console.WriteLine($"standOutput:{Environment.NewLine}{standOutput}");
+            //Console.WriteLine($"exitCode:{Environment.NewLine}{exitCode}");
+            //Console.WriteLine($"standOutput:{Environment.NewLine}{standOutput}");
 
             //Command.RunOneWDK("","",out int x,out string y);
 

@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Reflection;
 
 namespace Utilities
 {
@@ -21,11 +23,17 @@ namespace Utilities
         private const string REPOSSLN = @"Provisioning.sln";
         private const string CREATEPACAKGE = @"CreatePackage.cmd Debug";
         private const string CREATEPACAKGECMD = @"CreatePackage.cmd";
+        private const string INITCMD = "init.cmd";
+        private const string UpdateExternalDropsCMD = "UpdateExternalDrops.cmd";
+        private const string LOGSTASTR = "++++++++++++++++++++++++++++++++++++++++";
+        private const string LOGENDSTR = "----------------------------------------";
+       
 
-        public static void Run(string workDirectory, string cmd, out int exitCode, out string standOutput, bool output = true, bool exitWithOpenForm = false)
+        public static int Run(string workDirectory, string cmd, out int exitCode, out string standOutput, out string errorOutput, bool output = true, bool exitWithOpenForm = false, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null)
         {
             exitCode = int.MinValue;
             standOutput = null;
+            errorOutput = null;
 
             using (Process p = new Process())
             {
@@ -75,99 +83,191 @@ namespace Utilities
                     }
                 }
 
+                if (output && outPutEnum == OutPutEnum.Single)
+                {
+                    p.OutputDataReceived += new DataReceivedEventHandler((object sender, DataReceivedEventArgs e) => { commandNotify.WriteOutPut(((Process)sender).Id, e.Data); });
+                    p.ErrorDataReceived += new DataReceivedEventHandler((object sender, DataReceivedEventArgs e) => { commandNotify.WriteError(((Process)sender).Id, e.Data); });
+                    p.Exited += new EventHandler((object sender, EventArgs e) => { commandNotify.Exit(((Process)sender).Id, ((Process)sender).ExitCode); });
+                }
+
                 p.Start();//启动程序
 
-                if (output)
+                if (output && outPutEnum == OutPutEnum.All)
                 {
                     standOutput = p.StandardOutput.ReadToEnd();
-                    string error = p.StandardError.ReadToEnd();
-
-                    if (!string.IsNullOrEmpty(error))
-                    {
-                        error = Environment.NewLine + error;
-                    }
-
-                    standOutput += error;
+                    errorOutput = p.StandardError.ReadToEnd();
 
                     p.WaitForExit();//等待程序执行完退出进程
 
                     exitCode = p.ExitCode;
                 }
+                else
+                {
+                    if (waitForCloe)
+                    {
+                        //SpinWait.SpinUntil(() =>
+                        //{
+                        //    try
+                        //    {
+                        //        return Process.GetProcessById(p.Id) == null;
+                        //    }
+                        //    catch (Exception)
+                        //    {
+                        //        return true;
+                        //    }
+                        //});
+
+                        p.WaitForExit();//等待程序执行完退出进程
+                    }
+
+                    waitHandle?.WaitOne();
+                }
+
+                int id = p.Id;
 
                 p.Close();
+
+                return id;
             }
         }
 
-        public static CommandResult Run(string workDirectory, string cmd, bool output = true)
+        public static CommandResult Run(string workDirectory, string cmd, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false)
         {
-            Run(workDirectory, cmd, out int exitCode, out string standOutput, output);
-            CommandResult commandResult = new CommandResult(exitCode, standOutput);
+            int id = Run(workDirectory, cmd, out int exitCode, out string standOutput, out string errorOutput, output, false, waitHandle, waitForCloe);
+            CommandResult commandResult = new CommandResult(exitCode, standOutput, errorOutput, id);
             return commandResult;
         }
 
-        public static void RunWitheWDK(string workDirectory, string cmd, out int exitCode, out string standOutput, bool output = true, bool exitWithOpenForm = false)
+        public static int RunWitheWDK(string workDirectory, string cmd, out int exitCode, out string standOutput, out string errorOutput, bool output = true, bool exitWithOpenForm = false, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
         {
 
-            RuneWDK();
+            RuneWDK(logNotify);
 
-            Run(workDirectory, cmd, out exitCode, out standOutput, output, exitWithOpenForm);
+            return Run(workDirectory, cmd, out exitCode, out standOutput, out errorOutput, output, exitWithOpenForm, waitHandle, waitForCloe, outPutEnum, commandNotify);
         }
 
-        public static CommandResult RunWitheWDK(string workDirectory, string cmd, bool output = true)
+        public static CommandResult RunWitheWDK(string workDirectory, string cmd, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
         {
-            RunWitheWDK(workDirectory, cmd, out int exitCode, out string standOutput, output);
-            CommandResult commandResult = new CommandResult(exitCode, standOutput);
+            int id = RunWitheWDK(workDirectory, cmd, out int exitCode, out string standOutput, out string errorOutput, output, false, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            CommandResult commandResult = new CommandResult(exitCode, standOutput, errorOutput, id);
             return commandResult;
         }
 
-        public static void RuneWDK()
+        public static void RuneWDK(ILogNotify logNotify)
         {
-            Process eWDKProcess = Process.GetProcessesByName(CMD).FirstOrDefault(p => p.MainWindowTitle == MAINWINDOWSTIELE);
 
-            if (eWDKProcess == null)
+            WriteFuctionName2Log(MethodBase.GetCurrentMethod().Name, logNotify);
+
+            if (!File.Exists(Path.Combine(EWDKPATH, EWDKCMD)))
             {
-                Run(EWDKPATH, EWDKCMD, out int exitCode, out string standOutput, false);
+                throw new FileNotFoundException($"{EWDKCMD} not found", Path.Combine(EWDKPATH, EWDKCMD));
             }
+
+
+            int id;
+            
+            using (Process eWDKProcess = Process.GetProcessesByName(CMD).FirstOrDefault(p => p.MainWindowTitle == MAINWINDOWSTIELE))
+            {               
+                if (eWDKProcess == null)
+                {
+                    id = Run(EWDKPATH, EWDKCMD, out int exitCode, out string standOutput, out string errorOutput, false);
+                }
+                else
+                {
+                    id = eWDKProcess.Id;
+                }                              
+            }
+
+            logNotify?.WriteLog($"eWDK ran by process:{id}");
+
+            WriteFuctionName2Log(MethodBase.GetCurrentMethod().Name, logNotify, false);
         }
 
-        public static void OpenReposSln(string projectName)
+        public static int OpenReposSln(string projectName, ILogNotify logNotify = null)
         {
             if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
             {
                 throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
             }
 
-            RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), OPENREPOSSLN, out int exitCode, out string standOutput, false, true);
+            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), OPENREPOSSLN, out int exitCode, out string standOutput, out string errorOutput, false, true, null, false, OutPutEnum.None, null, logNotify);
         }
 
-        public static CommandResult CreatePacakge(string projectName, bool output = true)
+        public static CommandResult CreatePacakge(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
         {
-            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), CREATEPACAKGE, output);
-        }
-
-        public struct CommandResult
-        {
-            public CommandResult(int exitCode, string standOutput)
+            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, CREATEPACAKGECMD)))
             {
-                m_ExitCode = exitCode;
-                m_StandOutput = standOutput;
-                m_ErrorOutput = null;
+                throw new FileNotFoundException($"{CREATEPACAKGECMD} not found", Path.Combine(REPOSFOLDER, projectName, CREATEPACAKGECMD));
             }
 
-            public CommandResult(int exitCode, string standOutput, string errorOutput)
+            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), CREATEPACAKGE, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+        }
+
+        public static CommandResult Init(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        {
+            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, INITCMD)))
             {
-                m_ExitCode = exitCode;
-                m_StandOutput = standOutput;
-                m_ErrorOutput = errorOutput;
+                throw new FileNotFoundException($"{INITCMD} not found", Path.Combine(REPOSFOLDER, projectName, INITCMD));
             }
 
-            private int m_ExitCode;
-            private string m_StandOutput;
-            private string m_ErrorOutput;
-            public int ExitCode => m_ExitCode;
-            public string StandOutput => m_StandOutput;
-
-            public string ErrorOutput => m_ErrorOutput;
+            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), INITCMD, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
         }
+
+        public static CommandResult UpdateExternalDrops(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        {
+            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, UpdateExternalDropsCMD)))
+            {
+                throw new FileNotFoundException($"{UpdateExternalDropsCMD} not found", Path.Combine(REPOSFOLDER, projectName, UpdateExternalDropsCMD));
+            }
+
+            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), UpdateExternalDropsCMD, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+        }
+
+        public static void WriteFuctionName2Log(string Name, ILogNotify logNotify, bool isStart = true)
+        {
+            logNotify?.WriteLog(isStart ? $"{LOGSTASTR}{Name}{LOGSTASTR}" : $"{LOGENDSTR}{Name}{LOGENDSTR}");
+        }
+    }
+
+    public struct CommandResult
+    {
+        public CommandResult(int exitCode, string standOutput, string errorOutput, int processId)
+        {
+            m_ExitCode = exitCode;
+            m_StandOutput = standOutput;
+            m_ErrorOutput = errorOutput;
+            m_processId = processId;
+        }
+
+        private int m_ExitCode;
+        private string m_StandOutput;
+        private string m_ErrorOutput;
+        private int m_processId;
+        public int ExitCode => m_ExitCode;
+        public int ProcessId => m_processId;
+        public string StandOutput => m_StandOutput;
+
+        public string ErrorOutput => m_ErrorOutput;
+    }
+
+    public interface ICommandNotify
+    {
+        void WriteOutPut(int processId, string outputLine);
+
+        void WriteError(int processId, string errorLine);
+
+        void Exit(int processId, int exitCode);
+    }
+
+    public interface ILogNotify
+    {
+        void WriteLog(string logLine);
+    }
+
+    public enum OutPutEnum
+    {
+        None,
+        All,
+        Single
     }
 }
