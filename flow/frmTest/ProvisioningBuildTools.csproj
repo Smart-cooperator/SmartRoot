@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{C62704EE-3010-44AA-8201-70A28889086D}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>frmTest</RootNamespace>
-    <AssemblyName>frmTest</AssemblyName>
+    <RootNamespace>ProvisioningBuildTools</RootNamespace>
+    <AssemblyName>ProvisioningBuildTools</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -46,16 +46,31 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Form1.cs">
+    <Compile Include="BackGroundCommand.cs" />
+    <Compile Include="ExecEnum.cs" />
+    <Compile Include="frmProvisioningBuildTools.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Form1.Designer.cs">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="frmProvisioningBuildTools.Designer.cs">
+      <DependentUpon>frmProvisioningBuildTools.cs</DependentUpon>
     </Compile>
+    <Compile Include="SelectForm\frmSelectLoaclBranch.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SelectForm\frmSelectLoaclBranch.Designer.cs">
+      <DependentUpon>frmSelectLoaclBranch.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ISelect.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.cs</DependentUpon>
+    <Compile Include="SelectInput\SelectRemoteBranchInput.cs" />
+    <Compile Include="SelectInput\SelectLocalBranchInput.cs" />
+    <Compile Include="SelectOutput\SelectLocalBranchOutput.cs" />
+    <EmbeddedResource Include="frmProvisioningBuildTools.resx">
+      <DependentUpon>frmProvisioningBuildTools.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectForm\frmSelectLoaclBranch.resx">
+      <DependentUpon>frmSelectLoaclBranch.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -65,6 +80,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -85,5 +101,6 @@
       <Name>Utilities</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

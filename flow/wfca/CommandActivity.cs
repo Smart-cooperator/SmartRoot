@@ -28,7 +28,7 @@ namespace wfca
             string workDirectory = context.GetValue(WorkDirectory);
             string cmd = context.GetValue(Cmd);
 
-            Command.Run(workDirectory, cmd, out int exitCode, out string standOutput);
+            Command.Run(workDirectory, cmd, out int exitCode, out string standOutput, out string errorOutput);
 
             context.SetValue(ExitCode, exitCode);
             context.SetValue(StandOutput, standOutput);

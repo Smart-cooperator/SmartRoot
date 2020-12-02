@@ -13,34 +13,52 @@ namespace Utilities
 {
     public class Command
     {
-        private const string CMDPATH = @"cmd.exe";
-        //private const string CMDTITLE = @"title Command Prompt";
-        private const string EWDKPATH = @"C:\17134.1.3";
-        private const string EWDKCMD = @"LaunchBuildEnv.cmd";
-        private const string CMD = "cmd";
-        private const string MAINWINDOWSTIELE = @"Administrator:  ""Vs2017 & WDK Build Env WDKContentRoot: C:\17134.1.3\Program Files\Windows Kits\10\""";
-        private static readonly string REPOSFOLDER = $@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\source\repos\";
-        private const string OPENREPOSSLN = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe"" Provisioning.sln";
-        private const string REPOSSLN = @"Provisioning.sln";
-        private const string CREATEPACAKGE = @"CreatePackage.cmd Debug";
-        private const string CREATEPACAKGECMD = @"CreatePackage.cmd";
-        private const string INITCMD = "init.cmd";
-        private const string UpdateExternalDropsCMD = "UpdateExternalDrops.cmd";
-        private const string LOGSTASTR = "++++++++++++++++++++++++++++++++++++++++";
-        private const string LOGENDSTR = "----------------------------------------";
-        private const string CLONEREPOS = @"git clone https://dev.azure.com/MSFTDEVICES/Vulcan/_git/DeviceProvisioning {0}";
-        private const string LISTREMOTEBRANCH = "git branch -r";
-        private const string GETBRANCHLOG = "git log --decorate=full {0}";
-        private const string CHECKOUTBRANCH = "git checkout {0}";
-        private const string FETCHBRANCH = "git fetch";
-        private const string PULLBRANCH = "git pull";
-        private static readonly string CREATEPERSONALBRANCH = $"git checkout -b personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
-        private static readonly string PERSONAL = $"personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
-        private const string PRODUCTBRANCHFILTER = "origin/product/{0}/";
+        public const string CMDPATH = @"cmd.exe";
+        //public const string CMDTITLE = @"title Command Prompt";
+        public const string EWDKPATH = @"C:\17134.1.3";
+        public const string EWDKCMD = @"LaunchBuildEnv.cmd";
+        public const string CMD = "cmd";
+        // public const string MAINWINDOWSTIELE = @"Administrator:  ""Vs2017 & WDK Build Env WDKContentRoot: C:\17134.1.3\Program Files\Windows Kits\10\""";
+        public static readonly string REPOSFOLDER = $@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\source\repos\";
+        public const string OPENREPOSSLN = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe"" Provisioning.sln";
+        public const string REPOSSLN = @"Provisioning.sln";
+        public const string BUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x86""";
+        public const string BUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x64""";
+        public const string REBUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x86""";
+        public const string REBUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x64""";
+        public const string DEBUGX86BIN = @"Debug\x86\bin";
+        public const string DEBUGX64BIN = @"Debug\x64\bin";
+        public const string CREATEPACAKGE = @"CreatePackage.cmd Debug";
+        public const string CREATEPACAKGECMD = @"CreatePackage.cmd";
+        public const string INITCMD = "init.cmd";
+        public const string UpdateExternalDropsCMD = "UpdateExternalDrops.cmd";
+        //public const string LOGSTASTR = "++++++++++++++++++++++++++++++++++++++++";
+        //public const string LOGENDSTR = "----------------------------------------";
+        public const string CLONEREPOS = @"git clone https://dev.azure.com/MSFTDEVICES/Vulcan/_git/DeviceProvisioning {0}";
+        public const string LISTREMOTEBRANCH = "git branch -r";
+        public const string GETBRANCHLOG = "git log --decorate=full {0}";
+        public const string CHECKOUTBRANCH = "git checkout {0}";
+        public const string FETCHBRANCH = "git fetch";
+        public const string PULLBRANCH = "git pull";
+        public static readonly string CREATEPERSONALBRANCH = $"git checkout -b personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
+        public static readonly string PERSONAL = $"personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
+        public const string PRODUCTBRANCHFILTER = "origin/product/{0}/";
+        private static Process eWDKProcess;
+        private static string eWDKProcessWorkDirectory;
 
-
-        public static int Run(string workDirectory, string cmd, out int exitCode, out string standOutput, out string errorOutput, bool output = true, bool exitWithOpenForm = false, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null)
+        static Command()
         {
+
+        }
+
+
+        public static int Run(string workDirectory, string cmd, out int exitCode, out string standOutput, out string errorOutput, bool output = true, bool exitWithOpenForm = false, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
+        {
+            if (cancellationTokenSource != null && cancellationTokenSource.Token != CancellationToken.None)
+            {
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+            }
+
             exitCode = int.MinValue;
             standOutput = null;
             errorOutput = null;
@@ -106,18 +124,33 @@ namespace Utilities
 
                 if (output && outPutEnum == OutPutEnum.Single)
                 {
-                    p.OutputDataReceived += new DataReceivedEventHandler((object sender, DataReceivedEventArgs e) => { tempStandOutput += e.Data == null ? null : $"{e.Data}{Environment.NewLine}"; commandNotify.WriteOutPut(((Process)sender).Id, e.Data); });
-                    p.ErrorDataReceived += new DataReceivedEventHandler((object sender, DataReceivedEventArgs e) => { tempErrorOutput += e.Data == null ? null : $"{e.Data}{Environment.NewLine}"; commandNotify.WriteError(((Process)sender).Id, e.Data); });
-                    p.Exited += new EventHandler((object sender, EventArgs e) => { tempExitCode = ((Process)sender).ExitCode; commandNotify.Exit(((Process)sender).Id, ((Process)sender).ExitCode); });
+                    //p.EnableRaisingEvents = true;
+                    p.OutputDataReceived += new DataReceivedEventHandler((object sender, DataReceivedEventArgs e) =>
+                    {
+                        if (cmd.Contains(string.Format(GETBRANCHLOG,string.Empty)) && tempStandOutput?.Count(c=>c=='\n')==3)
+                        {
+                            return;
+                        }
+
+                        commandNotify?.WriteOutPut(((Process)sender).Id, e.Data); tempStandOutput = e.Data == tempStandOutput ? null : $"{tempStandOutput}{e.Data}{Environment.NewLine}";
+                    });
+                    p.ErrorDataReceived += new DataReceivedEventHandler((object sender, DataReceivedEventArgs e) => { commandNotify?.WriteErrorOutPut(((Process)sender).Id, e.Data); tempErrorOutput = e.Data == null ? tempErrorOutput : $"{tempErrorOutput}{e.Data}{Environment.NewLine}"; });
+                    p.Exited += new EventHandler((object sender, EventArgs e) => { tempExitCode = ((Process)sender).ExitCode; commandNotify?.Exit(((Process)sender).Id, ((Process)sender).ExitCode); });
                 }
 
                 p.Start();//启动程序
+
+                if (output && outPutEnum == OutPutEnum.Single)
+                {
+                    commandNotify?.WriteOutPut(p.Id, $"{workDirectory}>{cmd}");
+                }
+
 
                 if (output)
                 {
                     if (outPutEnum == OutPutEnum.All)
                     {
-                        standOutput = p.StandardOutput.ReadToEnd();
+                        standOutput = $"{workDirectory}>{cmd}{Environment.NewLine}{p.StandardOutput.ReadToEnd()}";
                         errorOutput = p.StandardError.ReadToEnd();
                     }
                     else
@@ -166,171 +199,307 @@ namespace Utilities
             }
         }
 
-        public static CommandResult Run(string workDirectory, string cmd, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false)
+        public static CommandResult Run(string workDirectory, string cmd, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
-            int id = Run(workDirectory, cmd, out int exitCode, out string standOutput, out string errorOutput, output, false, waitHandle, waitForCloe);
+            if (cancellationTokenSource != null && cancellationTokenSource.Token != CancellationToken.None)
+            {
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+            }
+
+            MethodBase method = new StackTrace().GetFrame(1).GetMethod();
+
+            //WriteFuctionName2Log(method.Name, logNotify);
+
+            int id = Run(workDirectory, cmd, out int exitCode, out string standOutput, out string errorOutput, output, false, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
             CommandResult commandResult = new CommandResult(exitCode, standOutput, errorOutput, id);
+
+            // WriteFuctionName2Log(method.Name, logNotify, false);
+
             return commandResult;
         }
 
-        public static int RunWitheWDK(string workDirectory, string cmd, out int exitCode, out string standOutput, out string errorOutput, bool output = true, bool exitWithOpenForm = false, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult RunOneWDK(string workDirectory, string cmd, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
+            if (cancellationTokenSource != null && cancellationTokenSource.Token != CancellationToken.None)
+            {
+                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+            }
 
-            RuneWDK(logNotify);
+            MethodBase method = new StackTrace().GetFrame(1).GetMethod();
 
-            return Run(workDirectory, cmd, out exitCode, out standOutput, out errorOutput, output, exitWithOpenForm, waitHandle, waitForCloe, outPutEnum, commandNotify);
+            //WriteFuctionName2Log(method.Name, logNotify);
+
+            if (eWDKProcess == null)
+            {
+                throw new Exception("please run eWDK first!!!");
+            }
+
+            if (!string.IsNullOrEmpty(workDirectory) && workDirectory != eWDKProcessWorkDirectory)
+            {
+                if (Directory.Exists(workDirectory))
+                {
+                    if (Path.GetPathRoot(workDirectory) != Path.GetPathRoot(eWDKProcessWorkDirectory))
+                    {
+                        eWDKProcess.StandardInput.WriteLine($"{Path.GetPathRoot(workDirectory)}：");
+                    }
+
+                    eWDKProcess.StandardInput.WriteLine($"cd {workDirectory}");
+
+                    eWDKProcessWorkDirectory = workDirectory;
+                }
+                else
+                {
+                    throw new DirectoryNotFoundException($"{workDirectory} not found");
+                }
+
+            }
+
+            eWDKProcess.StandardInput.WriteLine(cmd);
+
+            //WriteFuctionName2Log(method.Name, logNotify, false);
+
+            return new CommandResult(0, null, null, eWDKProcess.Id);
         }
 
-        public static CommandResult RunWitheWDK(string workDirectory, string cmd, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult RuneWDK(ICommandNotify commandNotify = null, ILogNotify logNotify = null, IMainWindowsTitleNotify mainWindowsTitleNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
-            int id = RunWitheWDK(workDirectory, cmd, out int exitCode, out string standOutput, out string errorOutput, output, false, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
-            CommandResult commandResult = new CommandResult(exitCode, standOutput, errorOutput, id);
-            return commandResult;
-        }
+            //WriteFuctionName2Log(MethodBase.GetCurrentMethod().Name, logNotify);
 
-        public static void RuneWDK(ILogNotify logNotify)
-        {
             if (!File.Exists(Path.Combine(EWDKPATH, EWDKCMD)))
             {
                 throw new FileNotFoundException($"{EWDKCMD} not found", Path.Combine(EWDKPATH, EWDKCMD));
             }
 
-
-            int id;
-
-            using (Process eWDKProcess = Process.GetProcessesByName(CMD).FirstOrDefault(p => p.MainWindowTitle == MAINWINDOWSTIELE))
+            if (eWDKProcess != null)
             {
-                if (eWDKProcess == null)
-                {
-                    WriteFuctionName2Log(MethodBase.GetCurrentMethod().Name, logNotify);
-
-                    id = Run(EWDKPATH, EWDKCMD, out int exitCode, out string standOutput, out string errorOutput, false);
-
-                    logNotify?.WriteLog($"eWDK ran by process:{id}");
-
-                    WriteFuctionName2Log(MethodBase.GetCurrentMethod().Name, logNotify, false);
-                }
-                else
-                {
-                    id = eWDKProcess.Id;
-                }
+                eWDKProcess.Kill();
+                eWDKProcess.Close();
+                eWDKProcess = null;
             }
+
+            eWDKProcess = new Process();
+            Process p = eWDKProcess;
+
+            p.StartInfo.FileName = CMDPATH;
+            p.StartInfo.UseShellExecute = false;         //是否使用操作系统shell启动
+            p.StartInfo.RedirectStandardInput = true;   //接受来自调用程序的输入信息
+            p.StartInfo.RedirectStandardOutput = true;  //由调用程序获取输出信息
+            p.StartInfo.RedirectStandardError = true;   //重定向标准错误输出
+            p.StartInfo.CreateNoWindow = true;          //不显示程序窗口        
+            p.StartInfo.Verb = "RunAs";
+            p.StartInfo.WorkingDirectory = EWDKPATH;
+            //p.EnableRaisingEvents = true;
+            p.OutputDataReceived += new DataReceivedEventHandler((object sender, DataReceivedEventArgs e) =>
+            {
+                try
+                {
+                    commandNotify?.WriteOutPut(((Process)sender).Id, e.Data);
+                }
+                catch (Exception)
+                {
+                }
+            });
+
+            p.ErrorDataReceived += new DataReceivedEventHandler((object sender, DataReceivedEventArgs e) =>
+            {
+                try
+                {
+                    commandNotify?.WriteErrorOutPut(((Process)sender).Id, e.Data);
+                }
+                catch (Exception)
+                {
+                }
+            });
+
+            p.Exited += new EventHandler((object sender, EventArgs e) =>
+            {
+                try
+                {
+                    commandNotify?.Exit(((Process)sender).Id, ((Process)sender).ExitCode);
+                }
+                catch (Exception)
+                {
+
+                    throw;
+                }
+            });
+
+            p.Start();//启动程序
+
+            p.BeginOutputReadLine();//开始读取输出数据
+            p.BeginErrorReadLine();//开始读取错误数据，重要！                  
+
+            p.StandardInput.AutoFlush = true;
+            p.StandardInput.WriteLine(EWDKCMD);
+
+            eWDKProcessWorkDirectory = EWDKPATH;
+
+            //Thread.Sleep(1000);
+
+            mainWindowsTitleNotify.Write(p.MainWindowTitle);
+
+            //WriteFuctionName2Log(MethodBase.GetCurrentMethod().Name, logNotify, false);
+
+            return new CommandResult(0, null, null, eWDKProcess.Id);
         }
 
-        public static CommandResult OpenReposSln(string projectName, ILogNotify logNotify = null)
+        public static CommandResult OpenReposSln(string projectName, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
             if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
             {
                 throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
             }
 
-            int id = RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), OPENREPOSSLN, out int exitCode, out string standOutput, out string errorOutput, false, true, null, false, OutPutEnum.None, null, logNotify);
-            CommandResult commandResult = new CommandResult(exitCode, standOutput, errorOutput, id);
-            return commandResult;
+            return RunOneWDK(Path.Combine(REPOSFOLDER, projectName), OPENREPOSSLN, logNotify, cancellationTokenSource);
         }
 
-        public static CommandResult CreatePacakge(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult RebulidX86(string projectName, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
+        {
+            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
+            {
+                throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+            }
+
+            return RunOneWDK(Path.Combine(REPOSFOLDER, projectName), REBUILDX86, logNotify, cancellationTokenSource);
+        }
+
+        public static CommandResult RebulidX64(string projectName, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
+        {
+            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
+            {
+                throw new FileNotFoundException($"{ REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+            }
+
+            return RunOneWDK(Path.Combine(REPOSFOLDER, projectName), REBUILDX64, logNotify, cancellationTokenSource);
+        }
+
+        public static CommandResult RebulidAll(string projectName, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
+        {
+            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
+            {
+                throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+            }
+
+            RebulidX86(projectName, logNotify, cancellationTokenSource);
+
+            return RebulidX64(projectName, logNotify, cancellationTokenSource);
+        }
+
+        public static CommandResult CreatePacakge(string projectName, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
             if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, CREATEPACAKGECMD)))
             {
                 throw new FileNotFoundException($"{CREATEPACAKGECMD} not found", Path.Combine(REPOSFOLDER, projectName, CREATEPACAKGECMD));
             }
 
-            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), CREATEPACAKGE, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            //if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)) || Directory.GetFiles(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)).Length == 0)
+            //{
+            //    throw new FileNotFoundException($"{DEBUGX64BIN} not found", Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN));
+            //}
+
+            //if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN)) || Directory.GetFiles(Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN)).Length == 0)
+            //{
+            //    throw new FileNotFoundException($"{DEBUGX86BIN} not found", Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN));
+            //}
+
+            return RunOneWDK(Path.Combine(REPOSFOLDER, projectName), CREATEPACAKGE, logNotify, cancellationTokenSource);
         }
 
-        public static CommandResult Init(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult Init(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
             if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, INITCMD)))
             {
                 throw new FileNotFoundException($"{INITCMD} not found", Path.Combine(REPOSFOLDER, projectName, INITCMD));
             }
 
-            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), INITCMD, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            return Run(Path.Combine(REPOSFOLDER, projectName), INITCMD, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
         }
 
-        public static CommandResult UpdateExternalDrops(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult UpdateExternalDrops(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
             if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, UpdateExternalDropsCMD)))
             {
                 throw new FileNotFoundException($"{UpdateExternalDropsCMD} not found", Path.Combine(REPOSFOLDER, projectName, UpdateExternalDropsCMD));
             }
 
-            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), UpdateExternalDropsCMD, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            return Run(Path.Combine(REPOSFOLDER, projectName), UpdateExternalDropsCMD, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
         }
 
-        public static CommandResult GitColne(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult GitColne(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
             if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) && (Directory.GetFiles(Path.Combine(REPOSFOLDER, projectName)).Length != 0 || Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Length != 0))
             {
                 throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an empty folder");
             }
 
-            return RunWitheWDK(REPOSFOLDER, string.Format(CLONEREPOS, projectName), output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            return Run(REPOSFOLDER, string.Format(CLONEREPOS, projectName), output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
         }
 
-        public static CommandResult GitRemoteBranchList(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult GitRemoteBranchList(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
             if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
                 throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
             }
 
-            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), LISTREMOTEBRANCH, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            return Run(Path.Combine(REPOSFOLDER, projectName), LISTREMOTEBRANCH, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
         }
 
-        public static CommandResult GitLog(string projectName, string branchName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult GitLog(string projectName, string branchName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
             if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
                 throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
             }
 
-            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), string.Format(GETBRANCHLOG, branchName), output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            return Run(Path.Combine(REPOSFOLDER, projectName), string.Format(GETBRANCHLOG, branchName), output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
         }
 
-        public static CommandResult GitCheckOut(string projectName, string branchName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult GitCheckOut(string projectName, string branchName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
             if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
                 throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
             }
 
-            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), string.Format(CHECKOUTBRANCH, branchName), output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            return Run(Path.Combine(REPOSFOLDER, projectName), string.Format(CHECKOUTBRANCH, branchName), output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
         }
 
-        public static CommandResult GitFetch(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult GitFetch(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
             if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
                 throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
             }
 
-            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), FETCHBRANCH, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            return Run(Path.Combine(REPOSFOLDER, projectName), FETCHBRANCH, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
         }
 
-        public static CommandResult GitPull(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult GitPull(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
             if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
                 throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
             }
 
-            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), PULLBRANCH, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            return Run(Path.Combine(REPOSFOLDER, projectName), PULLBRANCH, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
         }
 
-        public static CommandResult GitCreatePersonalBranch(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null)
+        public static CommandResult GitCreatePersonalBranch(string projectName, bool output = true, WaitHandle waitHandle = null, bool waitForCloe = false, OutPutEnum outPutEnum = OutPutEnum.All, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null)
         {
             if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
                 throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
             }
 
-            return RunWitheWDK(Path.Combine(REPOSFOLDER, projectName), string.Format(CREATEPERSONALBRANCH, projectName), output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            return Run(Path.Combine(REPOSFOLDER, projectName), string.Format(CREATEPERSONALBRANCH, projectName), output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
         }
 
-        public static CommandResult CheckOutLatestBranch(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, string newBranchName = null, string specificBranch = null)
+        public static CommandResult CheckOutLatestBranch(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, string newBranchName = null, Tuple<string, DateTime?, Version> specificBranch = null, CancellationTokenSource cancellationTokenSource = null)
         {
+
+            //WriteFuctionName2Log(MethodBase.GetCurrentMethod().Name, logNotify);
+
             bool output = true;
             WaitHandle waitHandle = null;
             bool waitForCloe = false;
@@ -345,14 +514,14 @@ namespace Utilities
 
             CommandResult commandResult;
 
-            commandResult = GitColne(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            commandResult = GitColne(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
 
             if (commandResult.ExitCode != 0)
             {
                 throw new Exception(string.Format($"Project:{newProjectName} Action:{CLONEREPOS} failed!!! Error:{commandResult.ErrorOutput}", newProjectName));
             }
 
-            commandResult = GitRemoteBranchList(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+            commandResult = GitRemoteBranchList(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
 
             if (commandResult.ExitCode != 0)
             {
@@ -365,55 +534,61 @@ namespace Utilities
 
             Tuple<string, DateTime?, Version> tempBranch;
 
-            for (int i = 0; i < branches.Length; i++)
+
+            if (specificBranch != null && specificBranch.Item1 != null && branches.Contains($"origin/{specificBranch.Item1}"))
             {
-                commandResult = GitLog(newProjectName, branches[i], output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
-
-                if (commandResult.ExitCode != 0)
+                lastestBranch = specificBranch;
+            }
+            else
+            {
+                for (int i = 0; i < branches.Length; i++)
                 {
-                    throw new Exception(string.Format($"Project:{newProjectName} Action:{GETBRANCHLOG} failed!!! Error:{commandResult.ErrorOutput}", branches[i]));
-                }
-                string tempBranchName = branches[i].Replace("origin/", string.Empty).Replace("/", "_").Trim();
+                    commandResult = GitLog(newProjectName, branches[i], output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
 
-                string firstLine = commandResult.StandOutput.Split(Environment.NewLine.ToCharArray()).FirstOrDefault(line => line.ToLower().Contains("tag: refs/tags/"));
-
-                Version tag = null;
-
-                if (!string.IsNullOrEmpty(firstLine))
-                {
-                    string matchPattern = $"{Regex.Escape("tag: refs/tags/")}[0-9]+{Regex.Escape(".")}[0-9]+{Regex.Escape(".")}[0-9]+{Regex.Escape($"-{tempBranchName}")}";
-
-                    Match ma = Regex.Match(firstLine, matchPattern, RegexOptions.IgnoreCase);
-
-                    if (ma.Success)
+                    if (commandResult.ExitCode != 0)
                     {
-                        tag = new Version(ma.Value.ToUpper().Replace("tag: refs/tags/".ToUpper(), string.Empty).Replace($"-{tempBranchName}".ToUpper(), string.Empty));
+                        throw new Exception(string.Format($"Project:{newProjectName} Action:{GETBRANCHLOG} failed!!! Error:{commandResult.ErrorOutput}", branches[i]));
                     }
-                }
+                    string tempBranchName = branches[i].Replace("origin/", string.Empty).Replace("/", "_").Trim();
 
-                string dateTimeLine = commandResult.StandOutput.Split(Environment.NewLine.ToCharArray()).FirstOrDefault(line => line.ToLower().Contains("Date:".ToLower())).Replace("Date:", string.Empty).Trim();
+                    //string firstLine = commandResult.StandOutput.Split(Environment.NewLine.ToCharArray()).FirstOrDefault(line => line.ToLower().Contains("tag: refs/tags/"));
+                    string firstLine = commandResult.StandOutput.Split(Environment.NewLine.ToCharArray()).FirstOrDefault(line => line.ToLower().Contains("commit"));
 
-                DateTime? dateTime = null;
+                    Version tag = null;
 
-                try
-                {
-                    dateTime = dateTimeLine == null ? null : (DateTime?)Convert.ToDateTime(dateTimeLine);
-                }
-                catch (Exception)
-                {
-                    if (dateTimeLine != null)
+                    if (!string.IsNullOrEmpty(firstLine))
                     {
-                        string[] dateTimeArrary = dateTimeLine.Split(' ');
+                        string matchPattern = $"{Regex.Escape("tag: refs/tags/")}[0-9]+{Regex.Escape(".")}[0-9]+{Regex.Escape(".")}[0-9]+{Regex.Escape($"-{tempBranchName}")}";
 
-                        dateTime = (DateTime?)Convert.ToDateTime($"{dateTimeArrary[0]}, {dateTimeArrary[1]} {dateTimeArrary[2]} {dateTimeArrary[4]} {dateTimeArrary[3]} {dateTimeArrary[5]}");
+                        Match ma = Regex.Match(firstLine, matchPattern, RegexOptions.IgnoreCase);
+
+                        if (ma.Success)
+                        {
+                            tag = new Version(ma.Value.ToUpper().Replace("tag: refs/tags/".ToUpper(), string.Empty).Replace($"-{tempBranchName}".ToUpper(), string.Empty));
+                        }
                     }
-                }
+
+                    string dateTimeLine = commandResult.StandOutput.Split(Environment.NewLine.ToCharArray()).FirstOrDefault(line => line.ToLower().Contains("Date:".ToLower())).Replace("Date:", string.Empty).Trim();
+
+                    DateTime? dateTime = null;
+
+                    try
+                    {
+                        dateTime = dateTimeLine == null ? null : (DateTime?)Convert.ToDateTime(dateTimeLine);
+                    }
+                    catch (Exception)
+                    {
+                        if (dateTimeLine != null)
+                        {
+                            string[] dateTimeArrary = dateTimeLine.Split(' ');
+
+                            dateTime = (DateTime?)Convert.ToDateTime($"{dateTimeArrary[0]}, {dateTimeArrary[1]} {dateTimeArrary[2]} {dateTimeArrary[4]} {dateTimeArrary[3]} {dateTimeArrary[5]}");
+                        }
+                    }
 
 
-                tempBranch = new Tuple<string, DateTime?, Version>(branches[i].Replace("origin/", string.Empty).Trim(), dateTime, tag);
+                    tempBranch = new Tuple<string, DateTime?, Version>(branches[i].Replace("origin/", string.Empty).Trim(), dateTime, tag);
 
-                if (string.IsNullOrEmpty(specificBranch))
-                {
                     if (lastestBranch.Item1 == null)
                     {
                         lastestBranch = tempBranch;
@@ -435,76 +610,96 @@ namespace Utilities
                             lastestBranch = tempBranch;
                         }
                     }
-                }
-                else
-                {
-                    if (tempBranch.Item1 != null && tempBranch.Item1.ToUpper().Contains(specificBranch.ToUpper()))
-                    {
-                        lastestBranch = tempBranch;
-                        break;
-                    }
+
                 }
             }
 
             if (lastestBranch.Item1 != null)
             {
-                commandResult = GitCheckOut(newProjectName, lastestBranch.Item1, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+                commandResult = GitCheckOut(newProjectName, lastestBranch.Item1, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
 
                 if (commandResult.ExitCode != 0)
                 {
                     throw new Exception(string.Format($"Project:{newProjectName} Action:{CHECKOUTBRANCH} failed!!! Error:{commandResult.ErrorOutput}", lastestBranch.Item1));
                 }
 
-                commandResult = GitFetch(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+                commandResult = GitFetch(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
 
                 if (commandResult.ExitCode != 0)
                 {
                     throw new Exception($"Project:{newProjectName} Action:{FETCHBRANCH} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                commandResult = GitPull(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+                commandResult = GitPull(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
 
                 if (commandResult.ExitCode != 0)
                 {
                     throw new Exception($"Project:{newProjectName} Action:{PULLBRANCH} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                commandResult = GitCheckOut(newProjectName, lastestBranch.Item1, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+                commandResult = GitCheckOut(newProjectName, lastestBranch.Item1, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
 
                 if (commandResult.ExitCode != 0)
                 {
                     throw new Exception(string.Format($"Project:{newProjectName} Action:{CHECKOUTBRANCH} failed!!! Error:{commandResult.ErrorOutput}", lastestBranch.Item1));
                 }
 
-                commandResult = GitCreatePersonalBranch(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+                commandResult = GitCreatePersonalBranch(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
 
                 if (commandResult.ExitCode != 0)
                 {
                     throw new Exception(string.Format($"Project:{newProjectName} Action:{CREATEPERSONALBRANCH} failed!!! Error:{commandResult.ErrorOutput}", newProjectName));
                 }
 
-                commandResult = Init(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+                commandResult = Init(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
 
                 if (commandResult.ExitCode != 0)
                 {
                     throw new Exception($"Project:{newProjectName} Action:{INITCMD} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                commandResult = UpdateExternalDrops(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify);
+                commandResult = UpdateExternalDrops(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
 
                 if (commandResult.ExitCode != 0)
                 {
                     throw new Exception($"Project:{newProjectName} Action:{UpdateExternalDropsCMD} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                commandResult = OpenReposSln(newProjectName, logNotify);
+                commandResult = OpenReposSln(newProjectName, logNotify, cancellationTokenSource);
 
-                if (commandResult.ExitCode != 0 && commandResult.ExitCode != int.MinValue)
+                if (commandResult.ExitCode != 0)
+                {
+                    throw new Exception($"Project:{newProjectName} Action:{OPENREPOSSLN} failed!!! Error:{commandResult.ErrorOutput}");
+                }
+
+                logNotify?.WriteLog("Pls ReBuild Debug|x86 in opened solution,close solution after failed and then click ok button!!!", true);
+
+                commandResult = RebulidAll(newProjectName, logNotify, cancellationTokenSource);
+
+                if (commandResult.ExitCode != 0)
+                {
+                    throw new Exception($"Project:{newProjectName} Action:ReBuildAll failed!!! Error:{commandResult.ErrorOutput}");
+                }
+
+                commandResult = CreatePacakge(newProjectName, logNotify, cancellationTokenSource);
+
+                if (commandResult.ExitCode != 0)
+                {
+                    throw new Exception($"Project:{newProjectName} Action:CreatePacakge failed!!! Error:{commandResult.ErrorOutput}");
+                }
+
+                commandResult = OpenReposSln(newProjectName, logNotify, cancellationTokenSource);
+
+                if (commandResult.ExitCode != 0)
                 {
                     throw new Exception($"Project:{newProjectName} Action:{OPENREPOSSLN} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
                 CheckOutedLatestBranch checkOutedLatestBranch = new CheckOutedLatestBranch(true, lastestBranch.Item1, string.Format(PERSONAL, newProjectName), lastestBranch.Item2, lastestBranch.Item3);
+
+                //WriteFuctionName2Log(MethodBase.GetCurrentMethod().Name, logNotify, false);
+
+                logNotify?.WriteLog($"Checkout Remote Product Branch={checkOutedLatestBranch.Product} Tag={checkOutedLatestBranch.Tag} LastModifiedTime={checkOutedLatestBranch.LastModifiedTime} into Local Personal Branch={checkOutedLatestBranch.Personal}");
 
                 return new CommandResult(0, $"Success={checkOutedLatestBranch.Success} Product={checkOutedLatestBranch.Product} Personal={checkOutedLatestBranch.Personal} Tag={checkOutedLatestBranch.Tag} LastModifiedTime={checkOutedLatestBranch.LastModifiedTime}", null, commandResult.ProcessId);
             }
@@ -514,10 +709,10 @@ namespace Utilities
             }
         }
 
-        public static void WriteFuctionName2Log(string Name, ILogNotify logNotify, bool isStart = true)
-        {
-            logNotify?.WriteLog(isStart ? $"{LOGSTASTR}{Name}{LOGSTASTR}" : $"{LOGENDSTR}{Name}{LOGENDSTR}");
-        }
+        //public static void WriteFuctionName2Log(string Name, ILogNotify logNotify, bool isStart = true)
+        //{
+        //    logNotify?.WriteLog(isStart ? $"{LOGSTASTR}{Name}{LOGSTASTR}" : $"{LOGENDSTR}{Name}{LOGENDSTR}");
+        //}
     }
 
     public struct CommandResult
@@ -575,14 +770,20 @@ namespace Utilities
     {
         void WriteOutPut(int processId, string outputLine);
 
-        void WriteError(int processId, string errorLine);
+        void WriteErrorOutPut(int processId, string errorLine);
 
         void Exit(int processId, int exitCode);
     }
 
+    public interface IMainWindowsTitleNotify
+    {
+        void Write(string title);
+    }
+
     public interface ILogNotify
     {
-        void WriteLog(string logLine);
+        void WriteLog(string logLine, bool showMessageBoxs = false);
+        void WriteLog(Exception ex);
     }
 
     public enum OutPutEnum

@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wfca", "wfca\wfca.csproj", "{F0ECDBB8-01B3-4D60-9126-B8314F0831FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "frmTest", "frmTest\frmTest.csproj", "{C62704EE-3010-44AA-8201-70A28889086D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProvisioningBuildTools", "frmTest\ProvisioningBuildTools.csproj", "{C62704EE-3010-44AA-8201-70A28889086D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
