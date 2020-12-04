@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
@@ -16,7 +18,7 @@ using Utilities;
 
 namespace ProvisioningBuildTools
 {
-    public partial class frmProvisioningBuildTools : Form, ICommandNotify, ILogNotify, IMainWindowsTitleNotify
+    public partial class frmProvisioningBuildTools : Form, ICommandNotify, ILogNotify
     {
         public frmProvisioningBuildTools()
         {
@@ -79,7 +81,7 @@ namespace ProvisioningBuildTools
             if (!this.InvokeRequired)
             {
                 //richTextBox1.AppendText($"{logLine}{Environment.NewLine}");
-                AppenLine(logLine, Color.Green);
+                AppenLine(logLine, Color.LightGreen);
             }
             else
             {
@@ -107,17 +109,11 @@ namespace ProvisioningBuildTools
             }
         }
 
-        public void Write(string title)
-        {
-            //throw new NotImplementedException();
-        }
-
-        private void Form1_Load(object sender, EventArgs e)
+        private void frmProvisioningBuildTools_Load(object sender, EventArgs e)
         {
 
             if (IsRunAsAdmin())
             {
-
                 cmbExecItems.DropDownStyle = ComboBoxStyle.DropDownList;
 
                 cmbExecItems.Items.AddRange(Enum.GetNames(typeof(ExecEnum)));
@@ -132,22 +128,21 @@ namespace ProvisioningBuildTools
                 rtbCMD.ScrollBars = RichTextBoxScrollBars.Both;
                 rtbCMD.LanguageOption = RichTextBoxLanguageOptions.UIFonts;
                 rtbCMD.Font = new Font(rtbCMD.Font.FontFamily, (float)10.25);
-                rtbCMD.ReadOnly = true;
+                rtbCMD.BackColor = Color.Black;
+                //rtbCMD.ReadOnly = true;
 
                 this.btnAbort.Enabled = false;
 
-                this.Text = $"Administrator: {this.Text}(Owner by v-fengzhou@microsoft.com)";
+                string text = this.Text;
+                Version version = Assembly.GetExecutingAssembly().GetName().Version;
+                string context = $"{text} [Version {version}]{Environment.NewLine}Author: v-fengzhou@microsoft.com{Environment.NewLine}{Environment.NewLine}";
 
-                try
-                {
-                    Command.RuneWDK(this, this, this);
-                }
-                catch (Exception ex)
-                {
-                    this.BeginInvoke(new Action<Exception>(WriteLog), ex);
-                    this.Enabled = false;
-                }
+                btnClear.Tag = new Action(() => { rtbCMD.Clear(); btnClear.Enabled = false; AppenLine(context, Color.LightGreen); });
 
+                this.Text = $"Administrator: {this.Text}";
+                //this.Text = $"Administrator: {this.Text}(Owner by v-fengzhou@microsoft.com)";
+
+                btnClear.PerformClick();
             }
             else
             {
@@ -159,7 +154,7 @@ namespace ProvisioningBuildTools
 
         private void AppenLine(string line, bool error = false)
         {
-            AppenLine(line, error ? Color.Red : Color.Black);
+            AppenLine(line, error ? Color.Red : Color.White);
         }
 
         private void AppenLine(string line, Color color)
@@ -203,10 +198,11 @@ namespace ProvisioningBuildTools
         {
             try
             {
-                rtbCMD.Clear();
-                Command.RuneWDK(this, this, this);
-                Thread.Sleep(200);
-                btnClear.Enabled = false;
+                //rtbCMD.Clear();
+
+                //btnClear.Enabled = false;
+
+                ((Action)btnClear.Tag).Invoke();
             }
             catch (Exception ex)
             {
@@ -221,12 +217,15 @@ namespace ProvisioningBuildTools
 
             ExecEnum execEnum;
             Form selectFrom = null;
-            Action runAct = null;
+            List<Func<CommandResult>> runAct = null;
             Action endInvoke = new Action(() => EnableRun(true));
             Action startInvoke = new Action(() => EnableRun(false));
+            SelectLocalBranchOutput selectLocalBranchOutput;
+            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
             try
             {
+
                 if (Enum.TryParse<ExecEnum>(cmbExecItems.SelectedItem.ToString(), out execEnum))
                 {
                     if (!backGroundCommand.IsBusy)
@@ -235,17 +234,17 @@ namespace ProvisioningBuildTools
                         {
                             case ExecEnum.OpenLocalBranch:
                             case ExecEnum.BuildLocalBranch:
+                            case ExecEnum.UpdateExternalDrops:
                                 selectFrom = new frmSelectLoaclBranch(this, this);
                                 break;
                             case ExecEnum.DropRemoteBranch:
+                                selectFrom = new frmSelectRemoteBranch(this, this);
                                 break;
-                            case ExecEnum.UpdateExternalDrops:
+                            case ExecEnum.PostBuildPackage:
                                 break;
                             case ExecEnum.InstallSurfacePackage:
                                 break;
-                            case ExecEnum.UploadSurfacePackage:
-                                break;
-                            case ExecEnum.PostBuildPackage:
+                            case ExecEnum.UploadProvisionTools:
                                 break;
                             default:
                                 break;
@@ -253,34 +252,46 @@ namespace ProvisioningBuildTools
 
                         if (selectFrom.ShowDialog(this) == DialogResult.OK)
                         {
-                            SelectLocalBranchOutput selectLocalBranchOutput;
-                            CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-
                             switch (execEnum)
                             {
                                 case ExecEnum.OpenLocalBranch:
                                     selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
-                                    runAct = new Action(() => Command.OpenReposSln(selectLocalBranchOutput.SelectedLocalBranch, null, cancellationTokenSource));
+                                    runAct = new List<Func<CommandResult>>()
+                                    {
+                                        new Func<CommandResult>(() => Command.OpenReposSln(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource))
+                                    };
                                     break;
                                 case ExecEnum.BuildLocalBranch:
                                     selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
-                                    runAct = new Action(() => { Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, null, cancellationTokenSource); Command.CreatePacakge(selectLocalBranchOutput.SelectedLocalBranch, null, cancellationTokenSource); });
-                                    break;
-                                case ExecEnum.DropRemoteBranch:
+                                    runAct = new List<Func<CommandResult>>()
+                                    {
+                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource)),
+                                        new Func<CommandResult>(() => Command.CreatePacakge(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource))
+                                    };
                                     break;
                                 case ExecEnum.UpdateExternalDrops:
+                                    selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
+                                    runAct = new List<Func<CommandResult>>()
+                                    {
+                                        new Func<CommandResult>(() => Command.UpdateExternalDrops(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource)),
+                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource)),
+                                        new Func<CommandResult>(() => Command.CreatePacakge(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource))
+                                        };
+                                    break;
+                                case ExecEnum.DropRemoteBranch:
+                                    selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
+                                    break;
+                                case ExecEnum.PostBuildPackage:
                                     break;
                                 case ExecEnum.InstallSurfacePackage:
                                     break;
-                                case ExecEnum.UploadSurfacePackage:
-                                    break;
-                                case ExecEnum.PostBuildPackage:
+                                case ExecEnum.UploadProvisionTools:
                                     break;
                                 default:
                                     break;
                             }
 
-                            backGroundCommand.AsyncRun(runAct, startInvoke, endInvoke, cancellationTokenSource, this);
+                            backGroundCommand.AsyncRun(runAct.ToArray(), startInvoke, endInvoke, cancellationTokenSource, this);
                         }
                     }
                 }
@@ -297,6 +308,7 @@ namespace ProvisioningBuildTools
             {
                 if (backGroundCommand.IsBusy)
                 {
+                    btnAbort.Enabled = false;
                     backGroundCommand.Abort();
                 }
             }

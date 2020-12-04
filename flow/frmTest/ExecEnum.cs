@@ -10,10 +10,10 @@ namespace ProvisioningBuildTools
     {
         OpenLocalBranch,
         BuildLocalBranch,
-        DropRemoteBranch,
         UpdateExternalDrops,
+        DropRemoteBranch,
+        PostBuildPackage,
         InstallSurfacePackage,
-        UploadSurfacePackage,
-        PostBuildPackage
+        UploadProvisionTools,        
     }
 }

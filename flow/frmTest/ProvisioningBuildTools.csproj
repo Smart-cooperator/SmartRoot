@@ -11,7 +11,7 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Deterministic>true</Deterministic>
+    <Deterministic>false</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -54,6 +54,12 @@
     <Compile Include="frmProvisioningBuildTools.Designer.cs">
       <DependentUpon>frmProvisioningBuildTools.cs</DependentUpon>
     </Compile>
+    <Compile Include="SelectForm\frmSelectRemoteBranch.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SelectForm\frmSelectRemoteBranch.Designer.cs">
+      <DependentUpon>frmSelectRemoteBranch.cs</DependentUpon>
+    </Compile>
     <Compile Include="SelectForm\frmSelectLoaclBranch.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -68,6 +74,9 @@
     <Compile Include="SelectOutput\SelectLocalBranchOutput.cs" />
     <EmbeddedResource Include="frmProvisioningBuildTools.resx">
       <DependentUpon>frmProvisioningBuildTools.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectForm\frmSelectRemoteBranch.resx">
+      <DependentUpon>frmSelectRemoteBranch.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SelectForm\frmSelectLoaclBranch.resx">
       <DependentUpon>frmSelectLoaclBranch.cs</DependentUpon>

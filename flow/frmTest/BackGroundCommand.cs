@@ -48,7 +48,17 @@ namespace ProvisioningBuildTools
             }
         }
 
-        public IAsyncResult AsyncRun(Action runAct, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify)
+        public IAsyncResult AsyncRun(Action actRun, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify)
+        {
+            return AsyncRun(new Func<CommandResult>[] { new Func<CommandResult>(() => { actRun.Invoke(); return default(CommandResult); }) }, startInvoke, endInvoke, cancellationTokenSource, logNotify);
+        }
+
+        public IAsyncResult AsyncRun(Func<CommandResult> func, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify)
+        {
+            return AsyncRun(new Func<CommandResult>[] { func }, startInvoke, endInvoke, cancellationTokenSource, logNotify);
+        }
+
+        public IAsyncResult AsyncRun(Func<CommandResult>[] funcs, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify)
         {
             lock (isBusyLock)
             {
@@ -71,7 +81,25 @@ namespace ProvisioningBuildTools
                         try
                         {
                             startInvoke?.Invoke();
-                            runAct.Invoke();
+
+                            CommandResult commandResult;
+
+                            foreach (var func in funcs)
+                            {
+                                commandResult = func.Invoke();
+
+                                if (!string.IsNullOrEmpty(commandResult.CommandName))
+                                {
+                                    if (commandResult.ExitCode == 0)
+                                    {
+                                        logNotify?.WriteLog($"Exec command {commandResult.CommandName} successfully!!!");
+                                    }
+                                    else
+                                    {
+                                        throw new Exception($"Exec command {commandResult.CommandName} failed!!!");
+                                    }
+                                }
+                            }
                         }
                         catch (Exception ex)
                         {

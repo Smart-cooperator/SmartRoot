@@ -68,7 +68,7 @@
             // 
             this.lblReposFolder.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblReposFolder.AutoSize = true;
-            this.lblReposFolder.Location = new System.Drawing.Point(109, 30);
+            this.lblReposFolder.Location = new System.Drawing.Point(106, 27);
             this.lblReposFolder.Name = "lblReposFolder";
             this.lblReposFolder.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblReposFolder.Size = new System.Drawing.Size(228, 17);
@@ -85,6 +85,8 @@
             this.Controls.Add(this.cmbLocalBranches);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
+            this.MaximumSize = new System.Drawing.Size(668, 186);
+            this.MinimumSize = new System.Drawing.Size(668, 186);
             this.Name = "frmSelectLoaclBranch";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Select Loacl Branch";

@@ -20,10 +20,6 @@ namespace ProvisioningBuildTools.SelectInput
         private string newProjectName = null;
         private ICommandNotify commandNotify;
         private ILogNotify logNotify;
-        private bool output = true;
-        private WaitHandle waitHandle = null;
-        private bool waitForCloe = false;
-        private OutPutEnum outPutEnum = OutPutEnum.Single;
         private CommandResult commandResult;
         private CancellationTokenSource cancellationTokenSource = null;
         private Action startInvoke;
@@ -72,7 +68,7 @@ namespace ProvisioningBuildTools.SelectInput
             {
                 newProjectName = "DeviceProvisioning";
 
-                commandResult = Command.GitColne(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
+                commandResult = Command.GitColne(newProjectName, commandNotify, logNotify, cancellationTokenSource);
 
                 if (commandResult.ExitCode != 0)
                 {
@@ -84,7 +80,7 @@ namespace ProvisioningBuildTools.SelectInput
                 newProjectName = selectLocalBranchInput.LocalBranches[0];
             }
 
-            commandResult = Command.GitRemoteBranchList(newProjectName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
+            commandResult = Command.GitRemoteBranchList(newProjectName, commandNotify, logNotify, cancellationTokenSource);
 
             if (commandResult.ExitCode != 0)
             {
@@ -98,7 +94,7 @@ namespace ProvisioningBuildTools.SelectInput
 
         private void GetBranchInfoAct(string branchName)
         {
-            commandResult = Command.GitLog(newProjectName, branchName, output, waitHandle, waitForCloe, outPutEnum, commandNotify, logNotify, cancellationTokenSource);
+            commandResult = Command.GitLog(newProjectName, branchName, commandNotify, logNotify, cancellationTokenSource);
 
             if (commandResult.ExitCode != 0)
             {

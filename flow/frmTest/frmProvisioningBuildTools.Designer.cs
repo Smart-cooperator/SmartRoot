@@ -93,10 +93,12 @@
             this.Controls.Add(this.btnExec);
             this.Controls.Add(this.cmbExecItems);
             this.Controls.Add(this.rtbCMD);
+            this.MaximumSize = new System.Drawing.Size(1420, 676);
+            this.MinimumSize = new System.Drawing.Size(1420, 676);
             this.Name = "frmProvisioningBuildTools";
             this.Text = "Provisioning Build Tools";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmProvisioningBuildTools_FormClosing);
-            this.Load += new System.EventHandler(this.Form1_Load);
+            this.Load += new System.EventHandler(this.frmProvisioningBuildTools_Load);
             this.ResumeLayout(false);
 
         }
