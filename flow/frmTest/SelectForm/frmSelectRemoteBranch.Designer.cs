@@ -46,7 +46,7 @@
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(203, 322);
+            this.btnOK.Location = new System.Drawing.Point(214, 323);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(75, 23);
             this.btnOK.TabIndex = 0;
@@ -56,7 +56,7 @@
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(342, 322);
+            this.btnCancel.Location = new System.Drawing.Point(339, 323);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 1;
@@ -69,16 +69,18 @@
             this.cmbBranch.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbBranch.FormattingEnabled = true;
             this.cmbBranch.IntegralHeight = false;
-            this.cmbBranch.Location = new System.Drawing.Point(333, 71);
+            this.cmbBranch.Location = new System.Drawing.Point(261, 71);
             this.cmbBranch.Name = "cmbBranch";
-            this.cmbBranch.Size = new System.Drawing.Size(192, 24);
+            this.cmbBranch.Size = new System.Drawing.Size(346, 24);
             this.cmbBranch.TabIndex = 2;
+            this.cmbBranch.DropDown += new System.EventHandler(this.cmbBranch_DropDown);
+            this.cmbBranch.SelectedIndexChanged += new System.EventHandler(this.cmbBranch_SelectedIndexChanged);
             // 
             // lblProject
             // 
             this.lblProject.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblProject.AutoSize = true;
-            this.lblProject.Location = new System.Drawing.Point(232, 19);
+            this.lblProject.Location = new System.Drawing.Point(142, 19);
             this.lblProject.Name = "lblProject";
             this.lblProject.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblProject.Size = new System.Drawing.Size(52, 17);
@@ -89,7 +91,7 @@
             // 
             this.lblProductBranch.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblProductBranch.AutoSize = true;
-            this.lblProductBranch.Location = new System.Drawing.Point(178, 71);
+            this.lblProductBranch.Location = new System.Drawing.Point(88, 71);
             this.lblProductBranch.Name = "lblProductBranch";
             this.lblProductBranch.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblProductBranch.Size = new System.Drawing.Size(106, 17);
@@ -101,16 +103,18 @@
             this.cmbProject.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbProject.FormattingEnabled = true;
             this.cmbProject.IntegralHeight = false;
-            this.cmbProject.Location = new System.Drawing.Point(333, 19);
+            this.cmbProject.Location = new System.Drawing.Point(261, 19);
             this.cmbProject.Name = "cmbProject";
-            this.cmbProject.Size = new System.Drawing.Size(84, 24);
+            this.cmbProject.Size = new System.Drawing.Size(346, 24);
             this.cmbProject.TabIndex = 5;
+            this.cmbProject.DropDown += new System.EventHandler(this.cmbProject_DropDown);
+            this.cmbProject.SelectedIndexChanged += new System.EventHandler(this.cmbProject_SelectedIndexChanged);
             // 
             // lblTag
             // 
             this.lblTag.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblTag.AutoSize = true;
-            this.lblTag.Location = new System.Drawing.Point(251, 121);
+            this.lblTag.Location = new System.Drawing.Point(161, 121);
             this.lblTag.Name = "lblTag";
             this.lblTag.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblTag.Size = new System.Drawing.Size(33, 17);
@@ -121,7 +125,7 @@
             // 
             this.lblLastModifiedTime.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblLastModifiedTime.AutoSize = true;
-            this.lblLastModifiedTime.Location = new System.Drawing.Point(165, 175);
+            this.lblLastModifiedTime.Location = new System.Drawing.Point(75, 175);
             this.lblLastModifiedTime.Name = "lblLastModifiedTime";
             this.lblLastModifiedTime.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblLastModifiedTime.Size = new System.Drawing.Size(119, 17);
@@ -130,25 +134,25 @@
             // 
             // txtTag
             // 
-            this.txtTag.Location = new System.Drawing.Point(333, 121);
+            this.txtTag.Location = new System.Drawing.Point(261, 121);
             this.txtTag.Name = "txtTag";
             this.txtTag.ReadOnly = true;
-            this.txtTag.Size = new System.Drawing.Size(192, 22);
+            this.txtTag.Size = new System.Drawing.Size(346, 22);
             this.txtTag.TabIndex = 8;
             // 
             // txtLastModifiedTime
             // 
-            this.txtLastModifiedTime.Location = new System.Drawing.Point(333, 175);
+            this.txtLastModifiedTime.Location = new System.Drawing.Point(261, 175);
             this.txtLastModifiedTime.Name = "txtLastModifiedTime";
             this.txtLastModifiedTime.ReadOnly = true;
-            this.txtLastModifiedTime.Size = new System.Drawing.Size(192, 22);
+            this.txtLastModifiedTime.Size = new System.Drawing.Size(346, 22);
             this.txtLastModifiedTime.TabIndex = 9;
             // 
             // lblNewBranchName
             // 
             this.lblNewBranchName.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblNewBranchName.AutoSize = true;
-            this.lblNewBranchName.Location = new System.Drawing.Point(167, 224);
+            this.lblNewBranchName.Location = new System.Drawing.Point(77, 224);
             this.lblNewBranchName.Name = "lblNewBranchName";
             this.lblNewBranchName.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblNewBranchName.Size = new System.Drawing.Size(117, 17);
@@ -157,24 +161,26 @@
             // 
             // txtNewBranchName
             // 
-            this.txtNewBranchName.Location = new System.Drawing.Point(333, 224);
+            this.txtNewBranchName.Location = new System.Drawing.Point(261, 224);
             this.txtNewBranchName.Name = "txtNewBranchName";
-            this.txtNewBranchName.Size = new System.Drawing.Size(192, 22);
+            this.txtNewBranchName.Size = new System.Drawing.Size(346, 22);
             this.txtNewBranchName.TabIndex = 11;
+            this.txtNewBranchName.TextChanged += new System.EventHandler(this.txtNewBranchName_TextChanged);
             // 
             // txtLocalBranchName
             // 
-            this.txtLocalBranchName.Location = new System.Drawing.Point(333, 269);
+            this.txtLocalBranchName.Location = new System.Drawing.Point(261, 269);
             this.txtLocalBranchName.Name = "txtLocalBranchName";
             this.txtLocalBranchName.ReadOnly = true;
-            this.txtLocalBranchName.Size = new System.Drawing.Size(192, 22);
+            this.txtLocalBranchName.Size = new System.Drawing.Size(346, 22);
             this.txtLocalBranchName.TabIndex = 13;
+            this.txtLocalBranchName.TextChanged += new System.EventHandler(this.txtLocalBranchName_TextChanged);
             // 
             // lblLocalBranchName
             // 
             this.lblLocalBranchName.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblLocalBranchName.AutoSize = true;
-            this.lblLocalBranchName.Location = new System.Drawing.Point(160, 269);
+            this.lblLocalBranchName.Location = new System.Drawing.Point(70, 269);
             this.lblLocalBranchName.Name = "lblLocalBranchName";
             this.lblLocalBranchName.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblLocalBranchName.Size = new System.Drawing.Size(124, 17);

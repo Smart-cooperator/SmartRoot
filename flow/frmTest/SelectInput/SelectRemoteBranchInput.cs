@@ -89,7 +89,7 @@ namespace ProvisioningBuildTools.SelectInput
 
             IGrouping<string, string>[] groupBranches = commandResult.StandOutput.Split(Environment.NewLine.ToCharArray()).Where(branch => branch.Contains(string.Format(Command.PRODUCTBRANCHFILTER.TrimEnd('/'), string.Empty))).GroupBy(branch => branch.Split('/')[2]).ToArray();
 
-            m_Projects = groupBranches.ToDictionary<IGrouping<string, string>, string, string[]>(gorupItem => gorupItem.Key, gorupItem => gorupItem.ToArray());
+            m_Projects = groupBranches.ToDictionary<IGrouping<string, string>, string, string[]>(gorupItem => gorupItem.Key, gorupItem => gorupItem.Select(str=>str.Trim()).ToArray());
         }
 
         private void GetBranchInfoAct(string branchName)
@@ -138,26 +138,24 @@ namespace ProvisioningBuildTools.SelectInput
             }
 
             m_BranchInfos[branchName] = new BranchInfo(branchName.Replace("origin/", string.Empty).Trim(), dateTime, tag);
-        }
+        }      
+    }
+    public class BranchInfo
+    {
+        private string m_BranchName;
+        private DateTime? m_LastModifiedTime;
+        private Version m_Tag;
 
-        public class BranchInfo
+        public string BranchName => m_BranchName;
+        public DateTime? LastModifiedTime => m_LastModifiedTime;
+        public Version Tag => m_Tag;
+
+        public BranchInfo(string branchName, DateTime? lastModifiedTime, Version tag)
         {
-            private string m_BranchName;
-            private DateTime? m_LastModifiedTime;
-            private Version m_Tag;
-
-            public string BranchName => m_BranchName;
-            public DateTime? LastModifiedTime => m_LastModifiedTime;
-            public Version Tag => m_Tag;
-
-            public BranchInfo(string branchName, DateTime? lastModifiedTime, Version tag)
-            {
-                m_BranchName = branchName;
-                m_LastModifiedTime = lastModifiedTime;
-                m_Tag = tag;
-            }
+            m_BranchName = branchName;
+            m_LastModifiedTime = lastModifiedTime;
+            m_Tag = tag;
         }
     }
-
 
 }
