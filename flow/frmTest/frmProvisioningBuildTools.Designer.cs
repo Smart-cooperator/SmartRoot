@@ -33,6 +33,7 @@
             this.btnExec = new System.Windows.Forms.Button();
             this.btnAbort = new System.Windows.Forms.Button();
             this.btnClear = new System.Windows.Forms.Button();
+            this.btnKill = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // rtbCMD
@@ -83,11 +84,22 @@
             this.btnClear.UseVisualStyleBackColor = true;
             this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             // 
+            // btnKill
+            // 
+            this.btnKill.Location = new System.Drawing.Point(1260, 425);
+            this.btnKill.Name = "btnKill";
+            this.btnKill.Size = new System.Drawing.Size(75, 23);
+            this.btnKill.TabIndex = 6;
+            this.btnKill.Text = "Kill";
+            this.btnKill.UseVisualStyleBackColor = true;
+            this.btnKill.Click += new System.EventHandler(this.btnKill_Click);
+            // 
             // frmProvisioningBuildTools
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1402, 629);
+            this.Controls.Add(this.btnKill);
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.btnAbort);
             this.Controls.Add(this.btnExec);
@@ -109,6 +121,7 @@
         private System.Windows.Forms.Button btnExec;
         private System.Windows.Forms.Button btnAbort;
         private System.Windows.Forms.Button btnClear;
+        private System.Windows.Forms.Button btnKill;
     }
 }
 

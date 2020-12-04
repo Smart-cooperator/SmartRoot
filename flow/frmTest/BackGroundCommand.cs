@@ -12,6 +12,7 @@ namespace ProvisioningBuildTools
     {
         private readonly object isBusyLock = new object();
         private readonly object cancellationTokenSourceLock = new object();
+        private readonly object cancellationTokenSourceLockForKill = new object();
 
         private bool m_IsBusy;
         public bool IsBusy
@@ -26,6 +27,8 @@ namespace ProvisioningBuildTools
         }
 
         private CancellationTokenSource m_cancellationTokenSource;
+
+        private CancellationTokenSource m_cancellationTokenSourceForKill;
 
         public void Abort()
         {
@@ -48,17 +51,38 @@ namespace ProvisioningBuildTools
             }
         }
 
-        public IAsyncResult AsyncRun(Action actRun, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify)
+        public void Kill()
         {
-            return AsyncRun(new Func<CommandResult>[] { new Func<CommandResult>(() => { actRun.Invoke(); return default(CommandResult); }) }, startInvoke, endInvoke, cancellationTokenSource, logNotify);
+            lock (isBusyLock)
+            {
+                if (m_IsBusy)
+                {
+                    lock (cancellationTokenSourceLockForKill)
+                    {
+                        if (m_cancellationTokenSourceForKill != null && m_cancellationTokenSourceForKill.IsCancellationRequested == false)
+                        {
+                            m_cancellationTokenSourceForKill.Cancel();
+                        }
+                    }
+                }
+                else
+                {
+                    throw new Exception("there is no command running!!!");
+                }
+            }
         }
 
-        public IAsyncResult AsyncRun(Func<CommandResult> func, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify)
+        public IAsyncResult AsyncRun(Action actRun, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            return AsyncRun(new Func<CommandResult>[] { func }, startInvoke, endInvoke, cancellationTokenSource, logNotify);
+            return AsyncRun(new Func<CommandResult>[] { new Func<CommandResult>(() => { actRun.Invoke(); return default(CommandResult); }) }, startInvoke, endInvoke, cancellationTokenSource, logNotify, cancellationTokenSourceForKill);
         }
 
-        public IAsyncResult AsyncRun(Func<CommandResult>[] funcs, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify)
+        public IAsyncResult AsyncRun(Func<CommandResult> func, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify, CancellationTokenSource cancellationTokenSourceForKill = null)
+        {
+            return AsyncRun(new Func<CommandResult>[] { func }, startInvoke, endInvoke, cancellationTokenSource, logNotify, cancellationTokenSourceForKill);
+        }
+
+        public IAsyncResult AsyncRun(Func<CommandResult>[] funcs, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify, CancellationTokenSource cancellationTokenSourceForKill=null)
         {
             lock (isBusyLock)
             {
@@ -72,6 +96,16 @@ namespace ProvisioningBuildTools
                         }
 
                         m_cancellationTokenSource = cancellationTokenSource;
+                    }
+
+                    lock (cancellationTokenSourceLockForKill)
+                    {
+                        if (m_cancellationTokenSourceForKill != null)
+                        {
+                            m_cancellationTokenSourceForKill.Dispose();
+                        }
+
+                        m_cancellationTokenSourceForKill = cancellationTokenSourceForKill;
                     }
 
                     m_IsBusy = true;

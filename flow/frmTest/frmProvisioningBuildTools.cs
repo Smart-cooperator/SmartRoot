@@ -132,6 +132,7 @@ namespace ProvisioningBuildTools
                 //rtbCMD.ReadOnly = true;
 
                 this.btnAbort.Enabled = false;
+                this.btnKill.Enabled = false;
 
                 string text = this.Text;
                 Version version = Assembly.GetExecutingAssembly().GetName().Version;
@@ -221,8 +222,9 @@ namespace ProvisioningBuildTools
             Action endInvoke = new Action(() => EnableRun(true));
             Action startInvoke = new Action(() => EnableRun(false));
             SelectLocalBranchOutput selectLocalBranchOutput;
+            SelectRemoteBranchOutput selectRemoteBranchOutput;
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-
+            CancellationTokenSource cancellationTokenSourceForKill = new CancellationTokenSource();
             try
             {
 
@@ -258,28 +260,32 @@ namespace ProvisioningBuildTools
                                     selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
                                     runAct = new List<Func<CommandResult>>()
                                     {
-                                        new Func<CommandResult>(() => Command.OpenReposSln(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource))
+                                        new Func<CommandResult>(() => Command.OpenReposSln(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                     };
                                     break;
                                 case ExecEnum.BuildLocalBranch:
                                     selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
                                     runAct = new List<Func<CommandResult>>()
                                     {
-                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource)),
-                                        new Func<CommandResult>(() => Command.CreatePacakge(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource))
+                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.CreatePacakge(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                     };
                                     break;
                                 case ExecEnum.UpdateExternalDrops:
                                     selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
                                     runAct = new List<Func<CommandResult>>()
                                     {
-                                        new Func<CommandResult>(() => Command.UpdateExternalDrops(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource)),
-                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource)),
-                                        new Func<CommandResult>(() => Command.CreatePacakge(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource))
+                                        new Func<CommandResult>(() => Command.UpdateExternalDrops(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.CreatePacakge(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                         };
                                     break;
                                 case ExecEnum.DropRemoteBranch:
-                                    selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
+                                    selectRemoteBranchOutput = ((ISelect<SelectRemoteBranchOutput>)selectFrom).SelectResult;
+                                    runAct = new List<Func<CommandResult>>()
+                                    {
+                                        new Func<CommandResult>(() => Command.CheckOutLatestBranch(selectRemoteBranchOutput.SelectProject,selectRemoteBranchOutput.NewBranchName,new Tuple<string, DateTime?, Version>(selectRemoteBranchOutput.SelectRemoteBranch,selectRemoteBranchOutput.LastModifiedTime,selectRemoteBranchOutput.Tag), this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        };
                                     break;
                                 case ExecEnum.PostBuildPackage:
                                     break;
@@ -291,7 +297,7 @@ namespace ProvisioningBuildTools
                                     break;
                             }
 
-                            backGroundCommand.AsyncRun(runAct.ToArray(), startInvoke, endInvoke, cancellationTokenSource, this);
+                            backGroundCommand.AsyncRun(runAct.ToArray(), startInvoke, endInvoke, cancellationTokenSource, this,cancellationTokenSourceForKill);
                         }
                     }
                 }
@@ -318,7 +324,21 @@ namespace ProvisioningBuildTools
             }
         }
 
-
+        private void btnKill_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (backGroundCommand.IsBusy)
+                {
+                    btnKill.Enabled = false;
+                    backGroundCommand.Kill();
+                }
+            }
+            catch (Exception ex)
+            {
+                this.BeginInvoke(new Action<Exception>(WriteLog), ex);
+            }
+        }
         private void EnableRun(bool enable = true)
         {
             if (this.InvokeRequired)
@@ -330,6 +350,7 @@ namespace ProvisioningBuildTools
                 this.btnExec.Enabled = enable;
                 this.btnClear.Enabled = enable;
                 this.btnAbort.Enabled = !enable;
+                this.btnKill.Enabled = !enable;
             }
 
         }

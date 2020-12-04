@@ -71,6 +71,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SelectInput\SelectRemoteBranchInput.cs" />
     <Compile Include="SelectInput\SelectLocalBranchInput.cs" />
+    <Compile Include="SelectOutput\SelectRemoteBranchOutput.cs" />
     <Compile Include="SelectOutput\SelectLocalBranchOutput.cs" />
     <EmbeddedResource Include="frmProvisioningBuildTools.resx">
       <DependentUpon>frmProvisioningBuildTools.cs</DependentUpon>

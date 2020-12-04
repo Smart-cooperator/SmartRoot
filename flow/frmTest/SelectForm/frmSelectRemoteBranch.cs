@@ -13,10 +13,10 @@ using Utilities;
 
 namespace ProvisioningBuildTools.SelectForm
 {
-    public partial class frmSelectRemoteBranch : Form, ISelect<SelectLocalBranchOutput>
+    public partial class frmSelectRemoteBranch : Form, ISelect<SelectRemoteBranchOutput>
     {
-        private SelectLocalBranchOutput m_SelectResult;
-        public SelectLocalBranchOutput SelectResult => m_SelectResult;
+        private SelectRemoteBranchOutput m_SelectResult;
+        public SelectRemoteBranchOutput SelectResult => m_SelectResult;
 
         public ILogNotify LogNotify { get; set; }
         public ICommandNotify CommandNotify { get; set; }
@@ -45,7 +45,7 @@ namespace ProvisioningBuildTools.SelectForm
                         lock (GetBranchInfoLock)
                         {
                             if (GetBranchInfo)
-                            {                              
+                            {
                                 this.ShowBranchInfo(input.GetBranchInfo(GetBranchName, true));
                                 GetBranchInfo = false;
                                 GetBranchName = null;
@@ -57,12 +57,11 @@ namespace ProvisioningBuildTools.SelectForm
                 );
 
             startInvoke = new Action(() => EnableRun(false));
-            input = new SelectRemoteBranchInput(CommandNotify, LogNotify, startInvoke, endInvoke);
         }
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            m_SelectResult = new SelectLocalBranchOutput(cmbBranch.SelectedItem.ToString());
+            m_SelectResult = new SelectRemoteBranchOutput(cmbProject.SelectedItem, cmbBranch.SelectedItem,this.txtTag.Text, this.txtLastModifiedTime.Text, this.txtNewBranchName.Text);
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
@@ -76,8 +75,9 @@ namespace ProvisioningBuildTools.SelectForm
         private void frmSelectRemoteBranch_Load(object sender, EventArgs e)
         {
             //cmbLocalBranches.IntegralHeight = false;           
-
+            this.txtNewBranchName.Enabled = false;
             this.btnOK.Enabled = false;
+            input = new SelectRemoteBranchInput(CommandNotify, LogNotify, startInvoke, endInvoke);
         }
 
         private void EnableRun(bool enable = true)
@@ -98,7 +98,7 @@ namespace ProvisioningBuildTools.SelectForm
             if (cmbProject.Items.Count == 0)
             {
                 if (input.Projects == null || input.Projects.Count == 0)
-                {                   
+                {
                     this.txtNewBranchName.Enabled = false;
                 }
                 else
@@ -110,7 +110,7 @@ namespace ProvisioningBuildTools.SelectForm
 
         private void cmbBranch_DropDown(object sender, EventArgs e)
         {
-            if (cmbBranch.Items.Count == 0 && !string.IsNullOrEmpty(cmbProject.SelectedItem.ToString()))
+            if (cmbProject.Items.Count != 0 && cmbBranch.Items.Count == 0 && !string.IsNullOrEmpty(cmbProject.SelectedItem.ToString()))
             {
                 cmbBranch.Items.AddRange(input.Projects[cmbProject.SelectedItem.ToString()]);
             }
@@ -123,6 +123,7 @@ namespace ProvisioningBuildTools.SelectForm
             this.txtLocalBranchName.Text = string.Format(Command.PERSONAL, cmbProject.SelectedItem.ToString());
             this.txtTag.Text = string.Empty;
             this.txtLastModifiedTime.Text = string.Empty;
+            this.txtNewBranchName.Enabled = true;
         }
 
         private void cmbBranch_SelectedIndexChanged(object sender, EventArgs e)
