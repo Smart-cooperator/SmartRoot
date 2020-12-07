@@ -47,11 +47,12 @@ namespace ProvisioningBuildTools.SelectInput
                 {
                     throw new Exception($"couldn't find {branchName} information!!!");
                 }
+                else
+                {
+                    Action actRun = new Action(() => GetBranchInfoAct(branchName));
 
-                Action actRun = new Action(() => GetBranchInfoAct(branchName));
-
-                backGroundCommand.AsyncRun(actRun, startInvoke, endInvoke, cancellationTokenSource, logNotify);
-
+                    backGroundCommand.AsyncRun(actRun, startInvoke, endInvoke, cancellationTokenSource, logNotify);
+                }
                 return null;
             }
             else
@@ -80,6 +81,13 @@ namespace ProvisioningBuildTools.SelectInput
                 newProjectName = selectLocalBranchInput.LocalBranches[0];
             }
 
+            commandResult = Command.GitFetchAll(newProjectName, commandNotify, logNotify, cancellationTokenSource);
+
+            if (commandResult.ExitCode != 0)
+            {
+                throw new Exception($"Project:{newProjectName} Action:{Command.FETCHALL} failed!!! Error:{commandResult.ErrorOutput}");
+            }
+
             commandResult = Command.GitRemoteBranchList(newProjectName, commandNotify, logNotify, cancellationTokenSource);
 
             if (commandResult.ExitCode != 0)
@@ -89,7 +97,7 @@ namespace ProvisioningBuildTools.SelectInput
 
             IGrouping<string, string>[] groupBranches = commandResult.StandOutput.Split(Environment.NewLine.ToCharArray()).Where(branch => branch.Contains(string.Format(Command.PRODUCTBRANCHFILTER.TrimEnd('/'), string.Empty))).GroupBy(branch => branch.Split('/')[2]).ToArray();
 
-            m_Projects = groupBranches.ToDictionary<IGrouping<string, string>, string, string[]>(gorupItem => gorupItem.Key, gorupItem => gorupItem.Select(str=>str.Trim()).ToArray());
+            m_Projects = groupBranches.ToDictionary<IGrouping<string, string>, string, string[]>(gorupItem => gorupItem.Key, gorupItem => gorupItem.Select(str => str.Trim()).ToArray());
         }
 
         private void GetBranchInfoAct(string branchName)
@@ -138,7 +146,7 @@ namespace ProvisioningBuildTools.SelectInput
             }
 
             m_BranchInfos[branchName] = new BranchInfo(branchName.Replace("origin/", string.Empty).Trim(), dateTime, tag);
-        }      
+        }
     }
     public class BranchInfo
     {

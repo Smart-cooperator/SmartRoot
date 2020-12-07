@@ -23,6 +23,12 @@ namespace ProvisioningBuildTools
         public frmProvisioningBuildTools()
         {
             InitializeComponent();
+            Application.ThreadException += Application_ThreadException;
+        }
+
+        private void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
+        {
+            WriteLog(e.Exception);
         }
 
         private static bool IsRunAsAdmin()
@@ -361,6 +367,13 @@ namespace ProvisioningBuildTools
             {
                 e.Cancel = true;
             }
+        }
+
+        private void frmProvisioningBuildTools_Activated(object sender, EventArgs e)
+        {
+            rtbCMD.SelectionStart = rtbCMD.TextLength;
+
+            rtbCMD.ScrollToCaret();
         }
     }
 }

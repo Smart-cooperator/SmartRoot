@@ -18,12 +18,13 @@ namespace Utilities
         public const string EWDKPATH = @"C:\17134.1.3";
         public const string EWDKCMD = @"LaunchBuildEnv.cmd";
         public const string CMD = "cmd";
+        public const string NUGETPROVISIONINGCLIENTCMD = @"Nuget Install .\Source\ProvisioningClient\packages.config -ConfigFile Nuget.config -OutputDirectory .\packages";
         // public const string MAINWINDOWSTIELE = @"Administrator:  ""Vs2017 & WDK Build Env WDKContentRoot: C:\17134.1.3\Program Files\Windows Kits\10\""";
         public static readonly string REPOSFOLDER = $@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\source\repos\";
         public const string OPENREPOSSLN = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe"" Provisioning.sln";
         public const string REPOSSLN = @"Provisioning.sln";
-        public const string BUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x86""";
-        public const string BUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x64""";
+        //public const string BUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x86""";
+        //public const string BUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x64""";
         public const string REBUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x86""";
         public const string REBUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x64""";
         public const string DEBUGX86BIN = @"Debug\x86\bin";
@@ -39,6 +40,7 @@ namespace Utilities
         public const string GETBRANCHLOG = "git log --decorate=full {0}";
         public const string CHECKOUTBRANCH = "git checkout {0}";
         public const string FETCHBRANCH = "git fetch";
+        public const string FETCHALL = "git fetch --all";
         public const string PULLBRANCH = "git pull";
         public static readonly string CREATEPERSONALBRANCH = $"git checkout -b personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
         public static readonly string PERSONAL = $"personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
@@ -116,7 +118,7 @@ namespace Utilities
                             return;
                         }
 
-                        if (cmd != null && cmd.Contains(string.Format(GETBRANCHLOG, string.Empty)) && tempStandOutput.ToString().Count(c => c == '\n') == 3)
+                        if (cmd != null && cmd.Contains(string.Format(GETBRANCHLOG, string.Empty)) && tempStandOutput.ToString().Contains("commit") && tempStandOutput.ToString().Contains("Date:"))
                         {
                             return;
                         }
@@ -279,6 +281,16 @@ namespace Utilities
             return Run(Path.Combine(REPOSFOLDER, projectName), OPENREPOSSLN, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
         }
 
+        public static CommandResult NugetProvisioningClient(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        {
+            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
+            {
+                throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+            }
+
+            return Run(Path.Combine(REPOSFOLDER, projectName), NUGETPROVISIONINGCLIENTCMD, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+        }
+
         public static CommandResult RebulidX86(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
             if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
@@ -410,6 +422,16 @@ namespace Utilities
             return Run(Path.Combine(REPOSFOLDER, projectName), FETCHBRANCH, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
+        public static CommandResult GitFetchAll(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        {
+            if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
+            {
+                throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
+            }
+
+            return Run(Path.Combine(REPOSFOLDER, projectName), FETCHALL, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+        }
+
         public static CommandResult GitPull(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
             if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
@@ -445,6 +467,14 @@ namespace Utilities
             if (commandResult.ExitCode != 0)
             {
                 throw new Exception(string.Format($"Project:{newProjectName} Action:{CLONEREPOS} failed!!! Error:{commandResult.ErrorOutput}", newProjectName));
+            }
+
+
+            commandResult = GitFetchAll(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+            if (commandResult.ExitCode != 0)
+            {
+                throw new Exception($"Project:{newProjectName} Action:{FETCHALL} failed!!! Error:{commandResult.ErrorOutput}");
             }
 
             commandResult = GitRemoteBranchList(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
@@ -590,14 +620,22 @@ namespace Utilities
                     throw new Exception($"Project:{newProjectName} Action:{UpdateExternalDropsCMD} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                commandResult = OpenReposSln(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                //commandResult = OpenReposSln(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+                //if (commandResult.ExitCode != 0)
+                //{
+                //    throw new Exception($"Project:{newProjectName} Action:{OPENREPOSSLN} failed!!! Error:{commandResult.ErrorOutput}");
+                //}
+
+                //logNotify?.WriteLog("Pls ReBuild Debug|x86 in opened solution,close solution after failed and then click ok button!!!", true);
+
+
+                commandResult = NugetProvisioningClient(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception($"Project:{newProjectName} Action:{OPENREPOSSLN} failed!!! Error:{commandResult.ErrorOutput}");
+                    throw new Exception($"Project:{newProjectName} Action:NugetProvisioningClient failed!!! Error:{commandResult.ErrorOutput}");
                 }
-
-                logNotify?.WriteLog("Pls ReBuild Debug|x86 in opened solution,close solution after failed and then click ok button!!!", true);
 
                 commandResult = RebulidAll(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 

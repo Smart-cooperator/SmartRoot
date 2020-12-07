@@ -82,7 +82,7 @@ namespace ProvisioningBuildTools
             return AsyncRun(new Func<CommandResult>[] { func }, startInvoke, endInvoke, cancellationTokenSource, logNotify, cancellationTokenSourceForKill);
         }
 
-        public IAsyncResult AsyncRun(Func<CommandResult>[] funcs, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify, CancellationTokenSource cancellationTokenSourceForKill=null)
+        public IAsyncResult AsyncRun(Func<CommandResult>[] funcs, Action startInvoke, Action endInvoke, CancellationTokenSource cancellationTokenSource, ILogNotify logNotify, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
             lock (isBusyLock)
             {
@@ -148,7 +148,18 @@ namespace ProvisioningBuildTools
                         }
                     });
 
-                    return internalRun.BeginInvoke(new AsyncCallback(iAsyncResult => { endInvoke?.Invoke(); }), null);
+                    return internalRun.BeginInvoke(
+                        new AsyncCallback(iAsyncResult =>
+                    {
+                        try
+                        {
+                            endInvoke?.Invoke();
+                        }
+                        catch (Exception ex)
+                        {
+                            logNotify?.WriteLog(ex);
+                        }
+                    }), null);
                 }
                 else
                 {

@@ -109,6 +109,7 @@
             this.MinimumSize = new System.Drawing.Size(1420, 676);
             this.Name = "frmProvisioningBuildTools";
             this.Text = "Provisioning Build Tools";
+            this.Activated += new System.EventHandler(this.frmProvisioningBuildTools_Activated);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmProvisioningBuildTools_FormClosing);
             this.Load += new System.EventHandler(this.frmProvisioningBuildTools_Load);
             this.ResumeLayout(false);

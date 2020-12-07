@@ -80,7 +80,7 @@
             // 
             this.lblProject.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblProject.AutoSize = true;
-            this.lblProject.Location = new System.Drawing.Point(142, 19);
+            this.lblProject.Location = new System.Drawing.Point(144, 19);
             this.lblProject.Name = "lblProject";
             this.lblProject.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblProject.Size = new System.Drawing.Size(52, 17);
@@ -91,7 +91,7 @@
             // 
             this.lblProductBranch.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblProductBranch.AutoSize = true;
-            this.lblProductBranch.Location = new System.Drawing.Point(88, 71);
+            this.lblProductBranch.Location = new System.Drawing.Point(90, 71);
             this.lblProductBranch.Name = "lblProductBranch";
             this.lblProductBranch.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblProductBranch.Size = new System.Drawing.Size(106, 17);
@@ -114,7 +114,7 @@
             // 
             this.lblTag.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblTag.AutoSize = true;
-            this.lblTag.Location = new System.Drawing.Point(161, 121);
+            this.lblTag.Location = new System.Drawing.Point(163, 121);
             this.lblTag.Name = "lblTag";
             this.lblTag.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblTag.Size = new System.Drawing.Size(33, 17);
@@ -125,7 +125,7 @@
             // 
             this.lblLastModifiedTime.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblLastModifiedTime.AutoSize = true;
-            this.lblLastModifiedTime.Location = new System.Drawing.Point(75, 175);
+            this.lblLastModifiedTime.Location = new System.Drawing.Point(77, 175);
             this.lblLastModifiedTime.Name = "lblLastModifiedTime";
             this.lblLastModifiedTime.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblLastModifiedTime.Size = new System.Drawing.Size(119, 17);
@@ -152,7 +152,7 @@
             // 
             this.lblNewBranchName.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblNewBranchName.AutoSize = true;
-            this.lblNewBranchName.Location = new System.Drawing.Point(77, 224);
+            this.lblNewBranchName.Location = new System.Drawing.Point(79, 224);
             this.lblNewBranchName.Name = "lblNewBranchName";
             this.lblNewBranchName.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblNewBranchName.Size = new System.Drawing.Size(117, 17);
@@ -180,7 +180,7 @@
             // 
             this.lblLocalBranchName.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblLocalBranchName.AutoSize = true;
-            this.lblLocalBranchName.Location = new System.Drawing.Point(70, 269);
+            this.lblLocalBranchName.Location = new System.Drawing.Point(72, 269);
             this.lblLocalBranchName.Name = "lblLocalBranchName";
             this.lblLocalBranchName.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblLocalBranchName.Size = new System.Drawing.Size(124, 17);

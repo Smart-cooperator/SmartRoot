@@ -68,7 +68,7 @@
             // 
             this.lblReposFolder.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblReposFolder.AutoSize = true;
-            this.lblReposFolder.Location = new System.Drawing.Point(106, 27);
+            this.lblReposFolder.Location = new System.Drawing.Point(105, 27);
             this.lblReposFolder.Name = "lblReposFolder";
             this.lblReposFolder.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblReposFolder.Size = new System.Drawing.Size(228, 17);
