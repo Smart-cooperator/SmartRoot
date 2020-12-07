@@ -229,6 +229,7 @@ namespace ProvisioningBuildTools
             Action startInvoke = new Action(() => EnableRun(false));
             SelectLocalBranchOutput selectLocalBranchOutput;
             SelectRemoteBranchOutput selectRemoteBranchOutput;
+            SelectRemoteBranchOutputPostBuild selectRemoteBranchOutputPostBuild;
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             CancellationTokenSource cancellationTokenSourceForKill = new CancellationTokenSource();
             try
@@ -249,6 +250,7 @@ namespace ProvisioningBuildTools
                                 selectFrom = new frmSelectRemoteBranch(this, this);
                                 break;
                             case ExecEnum.PostBuildPackage:
+                                selectFrom = new frmSelectRemoteBranchPostBuild(this, this);
                                 break;
                             case ExecEnum.InstallSurfacePackage:
                                 break;
@@ -294,6 +296,11 @@ namespace ProvisioningBuildTools
                                         };
                                     break;
                                 case ExecEnum.PostBuildPackage:
+                                    selectRemoteBranchOutputPostBuild = ((ISelect<SelectRemoteBranchOutputPostBuild>)selectFrom).SelectResult;
+                                    runAct = new List<Func<CommandResult>>()
+                                    {
+                                        new Func<CommandResult>(() => Command.PostBuild(selectRemoteBranchOutputPostBuild.LocalBuildScriptsFolder,new Tuple<string, string, Version>(selectRemoteBranchOutputPostBuild.SelectProject,selectRemoteBranchOutputPostBuild.SelectRemoteBranch,selectRemoteBranchOutputPostBuild.Tag), this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        };
                                     break;
                                 case ExecEnum.InstallSurfacePackage:
                                     break;

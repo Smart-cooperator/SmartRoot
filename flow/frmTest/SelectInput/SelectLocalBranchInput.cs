@@ -13,9 +13,13 @@ namespace ProvisioningBuildTools.SelectInput
         private string[] m_LocalBranches;
         public string[] LocalBranches => m_LocalBranches;
 
+        private string[] m_LocalFolders;
+        public string[] LocalFolders => m_LocalFolders;
+
         public SelectLocalBranchInput()
         {
-            m_LocalBranches = Directory.GetDirectories(Command.REPOSFOLDER).Where(dir => File.Exists(Path.Combine(dir, Command.REPOSSLN))).Select(dir => new DirectoryInfo(dir).Name).ToArray();
+            m_LocalFolders = Directory.GetDirectories(Command.REPOSFOLDER).Where(dir => File.Exists(Path.Combine(dir, Command.REPOSSLN))).ToArray();
+            m_LocalBranches = m_LocalFolders.Select(dir => new DirectoryInfo(dir).Name).ToArray();
         }
     }
 }

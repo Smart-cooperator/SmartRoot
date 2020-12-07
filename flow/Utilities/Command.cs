@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.IO.Compression;
 
 namespace Utilities
 {
@@ -21,8 +22,11 @@ namespace Utilities
         public const string NUGETPROVISIONINGCLIENTCMD = @"Nuget Install .\Source\ProvisioningClient\packages.config -ConfigFile Nuget.config -OutputDirectory .\packages";
         // public const string MAINWINDOWSTIELE = @"Administrator:  ""Vs2017 & WDK Build Env WDKContentRoot: C:\17134.1.3\Program Files\Windows Kits\10\""";
         public static readonly string REPOSFOLDER = $@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\source\repos\";
+        public static readonly string BUILDSCRIPTSFOLDER = Path.Combine($@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\source\repos\", "{0}", "BuildScripts");
         public const string OPENREPOSSLN = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe"" Provisioning.sln";
         public const string REPOSSLN = @"Provisioning.sln";
+        public const string PSOTBUILDCMD = @"PostBuildPackageGeneration.cmd";
+        public const string PSOTBUILDPS1 = @"PostBuildPackageGeneration.ps1";
         //public const string BUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x86""";
         //public const string BUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x64""";
         public const string REBUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x86""";
@@ -45,6 +49,11 @@ namespace Utilities
         public static readonly string CREATEPERSONALBRANCH = $"git checkout -b personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
         public static readonly string PERSONAL = $"personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
         public const string PRODUCTBRANCHFILTER = "origin/product/{0}/";
+        public const string DESMOBUILDFOLDER = @"\\desmo\release\Vulcan\CI_DeviceProvisioning\refs\heads\";
+        public const string RS4 = @"RS4";
+        public const string RS4X86DEBUG = @"Drop_RS4_x86_Debug";
+        public const string RS4X64DEBUG = @"Drop_RS4_x64_Debug";
+        public const string POSTBUILDPACKAGENAME = @"Provisioning_{0}_Debug";
 
         static Command()
         {
@@ -670,6 +679,65 @@ namespace Utilities
             {
                 throw new Exception($"Project:{newProjectName} Action:Got latest branch failed!!! Error:latest branch");
             }
+        }
+
+        public static CommandResult PostBuild(string localFolder, Tuple<string, string, Version> remoteBranchInfo, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        {
+            if (!File.Exists(Path.Combine(localFolder, PSOTBUILDCMD)))
+            {
+                throw new FileNotFoundException($"{ PSOTBUILDCMD} not found", Path.Combine(localFolder, PSOTBUILDCMD));
+            }
+
+            if (!File.Exists(Path.Combine(localFolder, PSOTBUILDPS1)))
+            {
+                throw new FileNotFoundException($"{ PSOTBUILDPS1} not found", Path.Combine(localFolder, PSOTBUILDPS1));
+            }
+
+            string deviceName = remoteBranchInfo.Item1;
+
+            string branch = remoteBranchInfo.Item2;
+
+            string version = $"{remoteBranchInfo.Item3}-{branch.Replace('/', '_')}";
+
+            string dropPath = Path.Combine(DESMOBUILDFOLDER, branch, version).Replace('/', '\\');
+
+            string postBuildPS1Conext = File.ReadAllText(Path.Combine(localFolder, PSOTBUILDPS1));
+
+            if (!Directory.Exists(Path.Combine(dropPath, RS4, RS4X86DEBUG)) || !Directory.Exists(Path.Combine(dropPath, RS4, RS4X64DEBUG)))
+            {
+                throw new FileNotFoundException($"Server Build not found", Path.Combine(dropPath, RS4));
+            }
+
+            CommandResult commandResult;
+
+            if (postBuildPS1Conext.Contains(Path.Combine(RS4, RS4X86DEBUG)) && postBuildPS1Conext.Contains(Path.Combine(RS4, RS4X64DEBUG)))
+            {
+                commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {dropPath}", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            }
+            else if (postBuildPS1Conext.Contains(RS4X86DEBUG) && postBuildPS1Conext.Contains(RS4X64DEBUG))
+            {
+                commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {Path.Combine(dropPath, RS4)}", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            }
+            else
+            {
+                throw new Exception($"Pls check NativeItemsPath and ManagedItemsPath in {Path.Combine(localFolder, PSOTBUILDPS1)} path not include {RS4}");
+            }
+
+            if (commandResult.ExitCode == 0)
+            {
+                if (!Directory.Exists(Path.Combine(localFolder, string.Format(POSTBUILDPACKAGENAME, deviceName))))
+                {
+                    throw new FileNotFoundException($"{string.Format(POSTBUILDPACKAGENAME, deviceName)} not found", Path.Combine(localFolder, string.Format(POSTBUILDPACKAGENAME, deviceName)));
+                }
+
+                string zipFileName = $"{version}_{string.Format(POSTBUILDPACKAGENAME, deviceName)}.zip";
+
+                ZipFile.CreateFromDirectory(Path.Combine(localFolder, string.Format(POSTBUILDPACKAGENAME, deviceName)), Path.Combine(localFolder, zipFileName));
+
+                logNotify.WriteLog($"Please share: {zipFileName} in {localFolder}");
+            }
+
+            return commandResult;
         }
 
         //public static void WriteFuctionName2Log(string Name, ILogNotify logNotify, bool isStart = true)
