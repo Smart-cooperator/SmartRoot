@@ -54,6 +54,10 @@ namespace Utilities
         public const string RS4X86DEBUG = @"Drop_RS4_x86_Debug";
         public const string RS4X64DEBUG = @"Drop_RS4_x64_Debug";
         public const string POSTBUILDPACKAGENAME = @"Provisioning_{0}_Debug";
+        public const string CREATEHASHANDVERSION = @"CreateHashAndVersion.cmd";
+        public const string PUBLISHLOCALBINARIES = @"PublishLocalBinaries.cmd";
+        public const string PACKAGESCONFIG = "Packages.config";
+        public const string PROVISIONINGTOOLSFILTER = @"(ProvisioningTools)_(\S+)_(\S+)";
 
         static Command()
         {
@@ -629,21 +633,14 @@ namespace Utilities
                     throw new Exception($"Project:{newProjectName} Action:{UpdateExternalDropsCMD} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                //commandResult = OpenReposSln(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
-
-                //if (commandResult.ExitCode != 0)
-                //{
-                //    throw new Exception($"Project:{newProjectName} Action:{OPENREPOSSLN} failed!!! Error:{commandResult.ErrorOutput}");
-                //}
-
-                //logNotify?.WriteLog("Pls ReBuild Debug|x86 in opened solution,close solution after failed and then click ok button!!!", true);
-
-
-                commandResult = NugetProvisioningClient(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
-
-                if (commandResult.ExitCode != 0)
+                if (File.Exists(Path.Combine(REPOSFOLDER, projectName, @"Source\ProvisioningClient\packages.config")))
                 {
-                    throw new Exception($"Project:{newProjectName} Action:NugetProvisioningClient failed!!! Error:{commandResult.ErrorOutput}");
+                    commandResult = NugetProvisioningClient(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+                    if (commandResult.ExitCode != 0)
+                    {
+                        throw new Exception($"Project:{newProjectName} Action:NugetProvisioningClient failed!!! Error:{commandResult.ErrorOutput}");
+                    }
                 }
 
                 commandResult = RebulidAll(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);

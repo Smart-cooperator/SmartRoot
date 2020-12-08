@@ -310,7 +310,7 @@ namespace ProvisioningBuildTools
                                     break;
                             }
 
-                            backGroundCommand.AsyncRun(runAct.ToArray(), startInvoke, endInvoke, cancellationTokenSource, this,cancellationTokenSourceForKill);
+                            backGroundCommand.AsyncRun(runAct.ToArray(), startInvoke, endInvoke, cancellationTokenSource, this, cancellationTokenSourceForKill);
                         }
                     }
                 }
@@ -364,6 +364,12 @@ namespace ProvisioningBuildTools
                 this.btnClear.Enabled = enable;
                 this.btnAbort.Enabled = !enable;
                 this.btnKill.Enabled = !enable;
+                this.TopMost = enable;
+
+                if (this.TopMost)
+                {
+                    this.Activate();
+                }
             }
 
         }
@@ -378,9 +384,17 @@ namespace ProvisioningBuildTools
 
         private void frmProvisioningBuildTools_Activated(object sender, EventArgs e)
         {
-            rtbCMD.SelectionStart = rtbCMD.TextLength;
-
-            rtbCMD.ScrollToCaret();
+            this.BeginInvoke(new Action(
+                () =>
+                {
+                    rtbCMD.Refresh();
+                    rtbCMD.SelectionStart = rtbCMD.TextLength;
+                    rtbCMD.ScrollToCaret();
+                    this.TopMost = false;
+                }
+                ));
+                   
+            //this.TopMost = false;
         }
     }
 }
