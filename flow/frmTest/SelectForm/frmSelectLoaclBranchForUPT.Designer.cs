@@ -1,6 +1,6 @@
 ﻿namespace ProvisioningBuildTools.SelectForm
 {
-    partial class frmSelectLoaclBranch
+    partial class frmSelectLoaclBranchForUPT
     {
         /// <summary>
         /// Required designer variable.
@@ -61,21 +61,22 @@
             this.cmbLocalBranches.IntegralHeight = false;
             this.cmbLocalBranches.Location = new System.Drawing.Point(380, 27);
             this.cmbLocalBranches.Name = "cmbLocalBranches";
-            this.cmbLocalBranches.Size = new System.Drawing.Size(173, 24);
+            this.cmbLocalBranches.Size = new System.Drawing.Size(185, 24);
             this.cmbLocalBranches.TabIndex = 2;
+            this.cmbLocalBranches.SelectedIndexChanged += new System.EventHandler(this.cmbLocalBranches_SelectedIndexChanged);
             // 
             // lblReposFolder
             // 
             this.lblReposFolder.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblReposFolder.AutoSize = true;
-            this.lblReposFolder.Location = new System.Drawing.Point(96, 27);
+            this.lblReposFolder.Location = new System.Drawing.Point(92, 27);
             this.lblReposFolder.Name = "lblReposFolder";
             this.lblReposFolder.RightToLeft = System.Windows.Forms.RightToLeft.No;
             this.lblReposFolder.Size = new System.Drawing.Size(228, 17);
             this.lblReposFolder.TabIndex = 3;
             this.lblReposFolder.Text = "C:\\Users\\v-fengzhou\\source\\repos\\";
             // 
-            // frmSelectLoaclBranch
+            // frmSelectLoaclBranchForUPT
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -87,10 +88,10 @@
             this.Controls.Add(this.btnOK);
             this.MaximumSize = new System.Drawing.Size(668, 186);
             this.MinimumSize = new System.Drawing.Size(668, 186);
-            this.Name = "frmSelectLoaclBranch";
+            this.Name = "frmSelectLoaclBranchForUPT";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Select Loacl Branch";
-            this.Load += new System.EventHandler(this.frmSelectLoaclBranch_Load);
+            this.Text = "Select Loacl Branch for Upload ProvisioningTools to Nuget";
+            this.Load += new System.EventHandler(this.frmSelectLoaclBranchForUPT_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

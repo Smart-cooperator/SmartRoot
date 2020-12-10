@@ -255,6 +255,7 @@ namespace ProvisioningBuildTools
                             case ExecEnum.InstallSurfacePackage:
                                 break;
                             case ExecEnum.UploadProvisionTools:
+                                selectFrom = new frmSelectLoaclBranchForUPT(this, this);
                                 break;
                             default:
                                 break;
@@ -305,6 +306,14 @@ namespace ProvisioningBuildTools
                                 case ExecEnum.InstallSurfacePackage:
                                     break;
                                 case ExecEnum.UploadProvisionTools:
+                                    selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
+                                    runAct = new List<Func<CommandResult>>()
+                                    {
+                                        new Func<CommandResult>(() => Command.UploadProvisioningTools2Nuget(selectLocalBranchOutput.SelectedLocalBranch,selectLocalBranchOutput.ProvisioningToolsPackageId,selectLocalBranchOutput.ProvisioningToolsPackageDestination,selectLocalBranchOutput.UpdateNewVersionAction, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.UpdateExternalDrops(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.CreatePacakge(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        };
                                     break;
                                 default:
                                     break;
@@ -384,17 +393,8 @@ namespace ProvisioningBuildTools
 
         private void frmProvisioningBuildTools_Activated(object sender, EventArgs e)
         {
-            this.BeginInvoke(new Action(
-                () =>
-                {
-                    rtbCMD.Refresh();
-                    rtbCMD.SelectionStart = rtbCMD.TextLength;
-                    rtbCMD.ScrollToCaret();
-                    this.TopMost = false;
-                }
-                ));
-                   
-            //this.TopMost = false;
+            this.Invalidate();
+            this.TopMost = false;
         }
     }
 }

@@ -565,20 +565,9 @@ namespace Utilities
                     {
                         if (tempBranch.Item2 > lastestBranch.Item2)
                         {
-                            if (!(lastestBranch.Item3 != null && tempBranch.Item3 != null && tempBranch.Item3 < lastestBranch.Item3))
-                            {
-                                lastestBranch = tempBranch;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (lastestBranch.Item3 != null && tempBranch.Item3 != null && tempBranch.Item3 > lastestBranch.Item3)
-                        {
                             lastestBranch = tempBranch;
                         }
                     }
-
                 }
             }
 
@@ -732,6 +721,50 @@ namespace Utilities
                 ZipFile.CreateFromDirectory(Path.Combine(localFolder, string.Format(POSTBUILDPACKAGENAME, deviceName)), Path.Combine(localFolder, zipFileName));
 
                 logNotify.WriteLog($"Please share: {zipFileName} in {localFolder}");
+            }
+
+            return commandResult;
+        }
+
+        public static CommandResult UploadProvisioningTools2Nuget(string project, string id, string destination, Action<string> updateVersion, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        {
+            string CreateHashAndVersionCmd = Path.Combine(string.Format(BUILDSCRIPTSFOLDER, project), CREATEHASHANDVERSION);
+            string PublishLocalBinariesCmd = Path.Combine(string.Format(BUILDSCRIPTSFOLDER, project), PUBLISHLOCALBINARIES);
+            string provisioningToolsFolder = Path.Combine(REPOSFOLDER, project, destination);
+
+            if (!File.Exists(CreateHashAndVersionCmd))
+            {
+                throw new FileNotFoundException($"{CREATEHASHANDVERSION} not found", CreateHashAndVersionCmd);
+            }
+
+            if (!File.Exists(PublishLocalBinariesCmd))
+            {
+                throw new FileNotFoundException($"{PUBLISHLOCALBINARIES} not found", PublishLocalBinariesCmd);
+            }
+
+            if (!Directory.Exists(provisioningToolsFolder) || Directory.GetDirectories(provisioningToolsFolder).Length == 0)
+            {
+                throw new FileNotFoundException($"provisioningTools folder not found or is an empty folder", provisioningToolsFolder);
+            }
+
+            Directory.GetFiles(provisioningToolsFolder, "*.nuspec", SearchOption.TopDirectoryOnly).ToList().ForEach(fileName => File.Delete(fileName));
+
+            CommandResult commandResult = Run(Path.Combine(string.Format(BUILDSCRIPTSFOLDER, project)), $@"{CREATEHASHANDVERSION} ..\{destination}", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+            if (commandResult.ExitCode == 0)
+            {
+                string newVersion = commandResult.StandOutput.Split(Environment.NewLine.ToCharArray()).Last(line => line.Contains("New Version:")).Split(':').Last().Trim();
+                string[] idSplits = id.Split('_');
+                string cmd = $@"{PUBLISHLOCALBINARIES} -Type {idSplits[0]} -Project {idSplits[1]} -Platform {idSplits[2]} -DropPath ..\{destination}";
+
+                commandResult = Run(Path.Combine(string.Format(BUILDSCRIPTSFOLDER, project)), cmd, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+                if (commandResult.ExitCode == 0)
+                {
+                    updateVersion(newVersion);
+
+                    Directory.Delete(provisioningToolsFolder, true);
+                }
             }
 
             return commandResult;

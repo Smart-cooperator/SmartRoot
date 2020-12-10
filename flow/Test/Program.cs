@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Utilities;
 
@@ -17,6 +18,10 @@ namespace Test
             //Console.WriteLine($"standOutput:{Environment.NewLine}{standOutput}");
 
             //Command.RunOneWDK("","",out int x,out string y);
+
+            string s1 = @"<ProductKeyID>sssdsadasd</ProductKeyID>";
+            string s2 = @"<ProductKeyID>(?<OA3Key>\S+)</ProductKeyID>";
+            Match m = Regex.Match(s1, s2);
 
             Console.ReadKey();
         }
