@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,8 +45,12 @@ namespace ProvisioningBuildTools.SelectForm
             m_latestSelectBranch = cmbLocalBranches.SelectedItem.ToString();
             Tuple<string, string, Action<string>> value = input.GetByProject(cmbLocalBranches.SelectedItem.ToString(), LogNotify);
             m_SelectResult = new SelectLocalBranchOutput(cmbLocalBranches.SelectedItem.ToString(), value.Item1, value.Item2, value.Item3);
-            this.DialogResult = DialogResult.OK;
-            this.Close();
+
+            if (MessageBox.Show($"Please make sure your change of {value.Item1} is in {Path.Combine(Command.REPOSFOLDER, m_latestSelectBranch, value.Item2)}","Double confirm",MessageBoxButtons.YesNo,MessageBoxIcon.Warning,MessageBoxDefaultButton.Button2)==DialogResult.Yes)
+            {
+                this.DialogResult = DialogResult.OK;
+                this.Close();
+            }
         }
 
         private void btnCancel_Click(object sender, EventArgs e)

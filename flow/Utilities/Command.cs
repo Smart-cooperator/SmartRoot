@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using System.IO.Compression;
+using System.Xml;
 
 namespace Utilities
 {
@@ -31,6 +32,8 @@ namespace Utilities
         //public const string BUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x64""";
         public const string REBUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x86""";
         public const string REBUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x64""";
+        public const string DEBUG = @"Debug";
+        public const string EXTERNALDROPS = @"ExternalDrops";
         public const string DEBUGX86BIN = @"Debug\x86\bin";
         public const string DEBUGX64BIN = @"Debug\x64\bin";
         public const string CREATEPACAKGE = @"CreatePackage.cmd Debug";
@@ -53,6 +56,7 @@ namespace Utilities
         public const string RS4 = @"RS4";
         public const string RS4X86DEBUG = @"Drop_RS4_x86_Debug";
         public const string RS4X64DEBUG = @"Drop_RS4_x64_Debug";
+        public const string PROVISIONINGPACKAGE = @"ProvisioningPackage";
         public const string POSTBUILDPACKAGENAME = @"Provisioning_{0}_Debug";
         public const string CREATEHASHANDVERSION = @"CreateHashAndVersion.cmd";
         public const string PUBLISHLOCALBINARIES = @"PublishLocalBinaries.cmd";
@@ -311,6 +315,11 @@ namespace Utilities
                 throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
             }
 
+            if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN)))
+            {
+                Directory.Delete(Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN), true);
+            }
+
             return Run(Path.Combine(REPOSFOLDER, projectName), REBUILDX86, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
         }
 
@@ -319,6 +328,11 @@ namespace Utilities
             if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
             {
                 throw new FileNotFoundException($"{ REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+            }
+
+            if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)))
+            {
+                Directory.Delete(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN), true);
             }
 
             return Run(Path.Combine(REPOSFOLDER, projectName), REBUILDX64, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
@@ -331,6 +345,11 @@ namespace Utilities
             if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
             {
                 throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+            }
+
+            if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUG)))
+            {
+                Directory.Delete(Path.Combine(REPOSFOLDER, projectName, DEBUG), true);
             }
 
             commandResult = RebulidX86(projectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
@@ -362,6 +381,11 @@ namespace Utilities
                 throw new FileNotFoundException($"{DEBUGX86BIN} not found", Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN));
             }
 
+            if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, PROVISIONINGPACKAGE)))
+            {
+                Directory.Delete(Path.Combine(REPOSFOLDER, projectName, PROVISIONINGPACKAGE), true);
+            }
+
             return Run(Path.Combine(REPOSFOLDER, projectName), CREATEPACAKGE, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
@@ -381,6 +405,45 @@ namespace Utilities
             {
                 throw new FileNotFoundException($"{UpdateExternalDropsCMD} not found", Path.Combine(REPOSFOLDER, projectName, UpdateExternalDropsCMD));
             }
+
+            //if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, EXTERNALDROPS)))
+            //{
+            //    Directory.Delete(Path.Combine(REPOSFOLDER, projectName, EXTERNALDROPS), true);
+            //}
+
+            string packageConfig = Path.Combine(REPOSFOLDER, projectName, PACKAGESCONFIG);
+
+            XmlDocument packageDoc = new XmlDocument();
+            packageDoc.Load(packageConfig);
+
+            IEnumerable<XmlElement> packages = packageDoc.DocumentElement.ChildNodes.Cast<XmlNode>().Where(node => node is XmlElement).Cast<XmlElement>().Where(element => element.HasAttribute("Version"));
+
+            string id;
+            Version version;
+            string destination;
+            string nugetspec;
+
+
+            packages.ToList().ForEach(
+                (package) =>
+                            {
+                                id = package.GetAttribute("id");
+                                version = new Version(package.GetAttribute("Version"));
+
+                                if (version.Revision==-1)
+                                {
+                                    version = new Version(version.Major, version.Minor, 0);
+                                }
+
+                                destination = Path.Combine(REPOSFOLDER, projectName, package.GetAttribute("destination"));
+                                nugetspec = Path.Combine(destination, $"{id}.{version.ToString(3)}.nuspec");
+
+                                if (Directory.Exists(destination) && !File.Exists(nugetspec))
+                                {
+                                    Directory.Delete(destination, true);
+                                }
+                            }
+                );
 
             return Run(Path.Combine(REPOSFOLDER, projectName), UpdateExternalDropsCMD, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
