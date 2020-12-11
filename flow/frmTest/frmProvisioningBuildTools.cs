@@ -253,6 +253,7 @@ namespace ProvisioningBuildTools
                                 selectFrom = new frmSelectRemoteBranchPostBuild(this, this);
                                 break;
                             case ExecEnum.InstallSurfacePackage:
+                                selectFrom= new frmSelectPackagesInfo(this, this);                          
                                 break;
                             case ExecEnum.UploadProvisionTools:
                                 selectFrom = new frmSelectLoaclBranchForUPT(this, this);
@@ -277,7 +278,7 @@ namespace ProvisioningBuildTools
                                     runAct = new List<Func<CommandResult>>()
                                     {
                                         new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
-                                        new Func<CommandResult>(() => Command.CreatePacakge(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        new Func<CommandResult>(() => Command.CreatePackage(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                     };
                                     break;
                                 case ExecEnum.UpdateExternalDrops:
@@ -286,7 +287,7 @@ namespace ProvisioningBuildTools
                                     {
                                         new Func<CommandResult>(() => Command.UpdateExternalDrops(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
                                         new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
-                                        new Func<CommandResult>(() => Command.CreatePacakge(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        new Func<CommandResult>(() => Command.CreatePackage(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                         };
                                     break;
                                 case ExecEnum.DropRemoteBranch:
@@ -304,6 +305,11 @@ namespace ProvisioningBuildTools
                                         };
                                     break;
                                 case ExecEnum.InstallSurfacePackage:
+                                    selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
+                                    runAct = new List<Func<CommandResult>>()
+                                    {
+                                        new Func<CommandResult>(() => Command.InstallSurfacePackage(null, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                    };
                                     break;
                                 case ExecEnum.UploadProvisionTools:
                                     selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
@@ -312,7 +318,7 @@ namespace ProvisioningBuildTools
                                         new Func<CommandResult>(() => Command.UploadProvisioningTools2Nuget(selectLocalBranchOutput.SelectedLocalBranch,selectLocalBranchOutput.ProvisioningToolsPackageId,selectLocalBranchOutput.ProvisioningToolsPackageDestination,selectLocalBranchOutput.UpdateNewVersionAction, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
                                         new Func<CommandResult>(() => Command.UpdateExternalDrops(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
                                         new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
-                                        new Func<CommandResult>(() => Command.CreatePacakge(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        new Func<CommandResult>(() => Command.CreatePackage(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                         };
                                     break;
                                 default:

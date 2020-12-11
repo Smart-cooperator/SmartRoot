@@ -45,5 +45,11 @@
     <Compile Include="Command.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="InstallSurfacePackages\InstallSurfacePackages.cmd" />
+    <EmbeddedResource Include="InstallSurfacePackages\InstallSurfacePackages.ps1" />
+    <EmbeddedResource Include="InstallSurfacePackages\Packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

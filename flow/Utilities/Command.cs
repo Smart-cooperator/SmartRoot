@@ -36,8 +36,8 @@ namespace Utilities
         public const string EXTERNALDROPS = @"ExternalDrops";
         public const string DEBUGX86BIN = @"Debug\x86\bin";
         public const string DEBUGX64BIN = @"Debug\x64\bin";
-        public const string CREATEPACAKGE = @"CreatePackage.cmd Debug";
-        public const string CREATEPACAKGECMD = @"CreatePackage.cmd";
+        public const string CREATEPACKAGE = @"CreatePackage.cmd Debug";
+        public const string CREATEPACKAGECMD = @"CreatePackage.cmd";
         public const string INITCMD = "init.cmd";
         public const string UpdateExternalDropsCMD = "UpdateExternalDrops.cmd";
         //public const string LOGSTASTR = "++++++++++++++++++++++++++++++++++++++++";
@@ -62,6 +62,10 @@ namespace Utilities
         public const string PUBLISHLOCALBINARIES = @"PublishLocalBinaries.cmd";
         public const string PACKAGESCONFIG = "Packages.config";
         public const string PROVISIONINGTOOLSFILTER = @"(ProvisioningTools)_(\S+)_(\S+)";
+        public static readonly string GLOBALPACKAGEFOLDER = $@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\.packager";
+        public const string INSTALLSURFACEPACKAGESCMD = @"InstallSurfacePackages.cmd";
+        public const string INSTALLSURFACEPACKAGESPS1 = @"InstallSurfacePackages.ps1";
+        public const string MANIFESTRESOURCEPATH = "Utilities.InstallSurfacePackages.";
 
         static Command()
         {
@@ -364,11 +368,11 @@ namespace Utilities
             }
         }
 
-        public static CommandResult CreatePacakge(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult CreatePackage(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, CREATEPACAKGECMD)))
+            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, CREATEPACKAGECMD)))
             {
-                throw new FileNotFoundException($"{CREATEPACAKGECMD} not found", Path.Combine(REPOSFOLDER, projectName, CREATEPACAKGECMD));
+                throw new FileNotFoundException($"{CREATEPACKAGECMD} not found", Path.Combine(REPOSFOLDER, projectName, CREATEPACKAGECMD));
             }
 
             if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)) || Directory.GetFiles(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)).Length == 0)
@@ -386,7 +390,7 @@ namespace Utilities
                 Directory.Delete(Path.Combine(REPOSFOLDER, projectName, PROVISIONINGPACKAGE), true);
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), CREATEPACAKGE, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(Path.Combine(REPOSFOLDER, projectName), CREATEPACKAGE, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
         public static CommandResult Init(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
@@ -702,11 +706,11 @@ namespace Utilities
                     throw new Exception($"Project:{newProjectName} Action:ReBuildAll failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                commandResult = CreatePacakge(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = CreatePackage(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception($"Project:{newProjectName} Action:CreatePacakge failed!!! Error:{commandResult.ErrorOutput}");
+                    throw new Exception($"Project:{newProjectName} Action:CreatePackage failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
                 commandResult = OpenReposSln(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
@@ -828,6 +832,69 @@ namespace Utilities
 
                     Directory.Delete(provisioningToolsFolder, true);
                 }
+            }
+
+            return commandResult;
+        }
+
+        public static CommandResult InstallSurfacePackage(Func<string, string> generatePackageConfig, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        {
+            Guid guid = Guid.NewGuid();
+            string tempFolder = Path.Combine(GLOBALPACKAGEFOLDER, guid.ToString());
+
+            if (!Directory.Exists(tempFolder))
+            {
+                Directory.CreateDirectory(tempFolder);
+            }
+
+            string[] manifestResourceNames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+
+            for (int i = 0; i < manifestResourceNames.Length; i++)
+            {
+                if (manifestResourceNames[i].Contains(MANIFESTRESOURCEPATH))
+                {
+                    string fileName = manifestResourceNames[i].Replace(MANIFESTRESOURCEPATH, string.Empty);
+                    using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(manifestResourceNames[i]))
+                    {
+                        string context;
+
+                        using (StreamReader sr = new StreamReader(stream))
+                        {
+                            context = sr.ReadToEnd();
+                        }
+
+                        switch (fileName)
+                        {
+                            case PACKAGESCONFIG:
+                            case INSTALLSURFACEPACKAGESCMD:
+                                break;
+                            case INSTALLSURFACEPACKAGESPS1:
+                                context = string.Format(context, guid.ToString());
+                                break;
+                            default:
+                                break;
+                        }
+
+                        using (FileStream fs = new FileStream(Path.Combine(tempFolder, fileName), FileMode.Create, FileAccess.Write))
+                        {
+                            using (StreamWriter sw = new StreamWriter(fs))
+                            {
+                                sw.Write(context);
+                            }
+                        }
+                    }
+                }
+            }
+
+            string shareResult = generatePackageConfig(Path.Combine(tempFolder, PACKAGESCONFIG));
+
+            CommandResult commandResult = Run(GLOBALPACKAGEFOLDER, Path.Combine(tempFolder, INSTALLSURFACEPACKAGESCMD), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+            Directory.Delete(tempFolder, true);
+
+            if (commandResult.ExitCode == 0)
+            {
+                logNotify.WriteLog(shareResult);
             }
 
             return commandResult;

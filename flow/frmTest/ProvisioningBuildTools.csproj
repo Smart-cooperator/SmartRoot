@@ -54,6 +54,12 @@
     <Compile Include="frmProvisioningBuildTools.Designer.cs">
       <DependentUpon>frmProvisioningBuildTools.cs</DependentUpon>
     </Compile>
+    <Compile Include="SelectForm\frmSelectPackagesInfo.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SelectForm\frmSelectPackagesInfo.Designer.cs">
+      <DependentUpon>frmSelectPackagesInfo.cs</DependentUpon>
+    </Compile>
     <Compile Include="SelectForm\frmSelectLoaclBranchForUPT.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -81,6 +87,7 @@
     <Compile Include="ISelect.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SelectInput\SelectPackagesInfoInput.cs" />
     <Compile Include="SelectInput\SelectRemoteBranchInput.cs" />
     <Compile Include="SelectInput\SelectLocalBranchInput.cs" />
     <Compile Include="SelectOutput\SelectRemoteBranchOutputPostBuild.cs" />
@@ -88,6 +95,9 @@
     <Compile Include="SelectOutput\SelectLocalBranchOutput.cs" />
     <EmbeddedResource Include="frmProvisioningBuildTools.resx">
       <DependentUpon>frmProvisioningBuildTools.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectForm\frmSelectPackagesInfo.resx">
+      <DependentUpon>frmSelectPackagesInfo.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SelectForm\frmSelectLoaclBranchForUPT.resx">
       <DependentUpon>frmSelectLoaclBranchForUPT.cs</DependentUpon>
