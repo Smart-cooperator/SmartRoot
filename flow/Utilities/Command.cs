@@ -430,7 +430,7 @@ namespace Utilities
                                 id = package.GetAttribute("id");
                                 version = new Version(package.GetAttribute("Version"));
 
-                                if (version.Revision==-1)
+                                if (version.Revision == -1)
                                 {
                                     version = new Version(version.Major, version.Minor, 0);
                                 }
@@ -761,11 +761,11 @@ namespace Utilities
 
             if (postBuildPS1Conext.Contains(Path.Combine(RS4, RS4X86DEBUG)) && postBuildPS1Conext.Contains(Path.Combine(RS4, RS4X64DEBUG)))
             {
-                commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {dropPath}", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {dropPath}\\", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
             }
             else if (postBuildPS1Conext.Contains(RS4X86DEBUG) && postBuildPS1Conext.Contains(RS4X64DEBUG))
             {
-                commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {Path.Combine(dropPath, RS4)}", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {Path.Combine(dropPath, RS4)}\\", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
             }
             else
             {
