@@ -71,24 +71,42 @@ namespace ProvisioningBuildTools.SelectInput
 
                                     bool idFind = false;
                                     bool versionFind = false;
+                                    bool marked = false;
 
                                     for (int i = 0; i < lines.Length; i++)
                                     {
-                                        if (!idFind)
+                                        if (!marked)
                                         {
-                                            if (lines[i].Contains($"id=\"{id}\""))
+                                            if (lines[i].TrimStart().StartsWith("<!--"))
                                             {
-                                                idFind = true;
+                                                marked = true;                                                
                                             }
+                                            else
+                                            {
+                                                if (!idFind)
+                                                {
+                                                    if (lines[i].Contains($"id=\"{id}\""))
+                                                    {
+                                                        idFind = true;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (lines[i].Contains($"Version=\"{oldVersion}\""))
+                                                    {
+                                                        lines[i] = lines[i].Replace($"Version=\"{oldVersion}\"", $"Version=\"{version}\"");
+                                                        versionFind = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }                                                                                 
                                         }
                                         else
                                         {
-                                            if (lines[i].Contains($"Version=\"{oldVersion}\""))
+                                            if (lines[i].TrimEnd().EndsWith("-->"))
                                             {
-                                                lines[i] = lines[i].Replace($"Version=\"{oldVersion}\"", $"Version=\"{version}\"");
-                                                versionFind = true;
-                                                break;
-                                            }
+                                                marked = false;
+                                            }                                         
                                         }
                                     }
 

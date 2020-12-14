@@ -66,6 +66,7 @@ namespace Utilities
         public const string INSTALLSURFACEPACKAGESCMD = @"InstallSurfacePackages.cmd";
         public const string INSTALLSURFACEPACKAGESPS1 = @"InstallSurfacePackages.ps1";
         public const string MANIFESTRESOURCEPATH = "Utilities.InstallSurfacePackages.";
+        public const string GENERATEDFILESFOLDER = @"Source\ProvisioningClient\obj\GeneratedFiles";
 
         static Command()
         {
@@ -324,6 +325,11 @@ namespace Utilities
                 Directory.Delete(Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN), true);
             }
 
+            if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, GENERATEDFILESFOLDER)))
+            {
+                Directory.Delete(Path.Combine(REPOSFOLDER, projectName, GENERATEDFILESFOLDER), true);
+            }
+
             return Run(Path.Combine(REPOSFOLDER, projectName), REBUILDX86, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
         }
 
@@ -434,13 +440,21 @@ namespace Utilities
                                 id = package.GetAttribute("id");
                                 version = new Version(package.GetAttribute("Version"));
 
-                                if (version.Revision == -1)
+                                if (version.Build == -1)
                                 {
                                     version = new Version(version.Major, version.Minor, 0);
                                 }
 
+                                if (version.Revision == -1)
+                                {
+                                    version = new Version(version.Major, version.Minor, version.Build, 0);
+                                }
+
                                 destination = Path.Combine(REPOSFOLDER, projectName, package.GetAttribute("destination"));
-                                nugetspec = Path.Combine(destination, $"{id}.{version.ToString(3)}.nuspec");
+
+                                string versionStr = version.Revision == 0 ? version.ToString(3) : version.ToString(4);
+
+                                nugetspec = Path.Combine(destination, $"{id}.{versionStr}.nuspec");
 
                                 if (Directory.Exists(destination) && !File.Exists(nugetspec))
                                 {
@@ -449,7 +463,26 @@ namespace Utilities
                             }
                 );
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), UpdateExternalDropsCMD, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            CommandResult commandResult = Run(Path.Combine(REPOSFOLDER, projectName), UpdateExternalDropsCMD, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+            if (!string.IsNullOrEmpty(commandResult.ErrorOutput))
+            {
+                string pattern = @"Get-Item : (?<Error>Package '[\S\s]+?' is not found)";
+
+                Regex regex = new Regex(pattern);
+
+                Match match = regex.Match(commandResult.ErrorOutput);
+
+                while (match.Success)
+                {
+                    logNotify.WriteLog(match.Groups["Error"].Value, true);
+                    match = match.NextMatch();
+                }
+
+                commandResult = new CommandResult(commandResult.CommandName, -1, commandResult.StandOutput, commandResult.ErrorOutput, commandResult.ProcessId);
+            }
+
+            return commandResult;
         }
 
         public static CommandResult GitColne(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
@@ -888,13 +921,32 @@ namespace Utilities
 
             string shareResult = generatePackageConfig(Path.Combine(tempFolder, PACKAGESCONFIG));
 
-            CommandResult commandResult = Run(GLOBALPACKAGEFOLDER, Path.Combine(tempFolder, INSTALLSURFACEPACKAGESCMD), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            CommandResult commandResult = Run(GLOBALPACKAGEFOLDER, $@".\{guid}\{INSTALLSURFACEPACKAGESCMD}", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             Directory.Delete(tempFolder, true);
 
-            if (commandResult.ExitCode == 0)
+            string pattern = @"Get-Item : (?<Error>Package '[\S\s]+?' is not found)";   
+
+            if (!string.IsNullOrEmpty(commandResult.ErrorOutput))
             {
-                logNotify.WriteLog(shareResult);
+                Regex regex = new Regex(pattern);
+
+                Match match = regex.Match(commandResult.ErrorOutput);
+
+                while (match.Success)
+                {
+                    logNotify.WriteLog(match.Groups["Error"].Value, true);
+                    match = match.NextMatch();
+                }
+
+                commandResult = new CommandResult(commandResult.CommandName, -1, commandResult.StandOutput, commandResult.ErrorOutput, commandResult.ProcessId);
+            }
+            else
+            {
+                if (commandResult.ExitCode == 0)
+                {
+                    logNotify.WriteLog(shareResult);
+                }
             }
 
             return commandResult;
@@ -973,7 +1025,7 @@ namespace Utilities
 
     public interface ILogNotify
     {
-        void WriteLog(string logLine, bool showMessageBoxs = false);
+        void WriteLog(string logLine, bool hasError = false);
         void WriteLog(Exception ex);
     }
 }

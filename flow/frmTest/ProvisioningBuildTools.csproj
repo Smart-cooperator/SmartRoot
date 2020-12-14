@@ -90,6 +90,7 @@
     <Compile Include="SelectInput\SelectPackagesInfoInput.cs" />
     <Compile Include="SelectInput\SelectRemoteBranchInput.cs" />
     <Compile Include="SelectInput\SelectLocalBranchInput.cs" />
+    <Compile Include="SelectOutput\SelectPackagesInfoOutput.cs" />
     <Compile Include="SelectOutput\SelectRemoteBranchOutputPostBuild.cs" />
     <Compile Include="SelectOutput\SelectRemoteBranchOutput.cs" />
     <Compile Include="SelectOutput\SelectLocalBranchOutput.cs" />

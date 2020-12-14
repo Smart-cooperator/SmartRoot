@@ -82,23 +82,16 @@ namespace ProvisioningBuildTools
             }
         }
 
-        public void WriteLog(string logLine, bool showMessageBox = false)
+        public void WriteLog(string logLine, bool hasError = false)
         {
             if (!this.InvokeRequired)
             {
                 //richTextBox1.AppendText($"{logLine}{Environment.NewLine}");
-                AppenLine(logLine, Color.LightGreen);
+                AppenLine(logLine, !hasError ? Color.LightGreen : Color.Red);
             }
             else
             {
-                if (showMessageBox)
-                {
-                    this.Invoke(new Action(() => MessageBox.Show(logLine, "Notification", MessageBoxButtons.OK, MessageBoxIcon.Warning)));
-                }
-                else
-                {
-                    this.BeginInvoke(new Action<string, bool>(WriteLog), logLine, showMessageBox);
-                }
+                this.BeginInvoke(new Action<string, bool>(WriteLog), logLine, hasError);
             }
         }
 
@@ -229,6 +222,7 @@ namespace ProvisioningBuildTools
             Action startInvoke = new Action(() => EnableRun(false));
             SelectLocalBranchOutput selectLocalBranchOutput;
             SelectRemoteBranchOutput selectRemoteBranchOutput;
+            SelectPackagesInfoOutput selectPackagesInfoOutput;
             SelectRemoteBranchOutputPostBuild selectRemoteBranchOutputPostBuild;
             CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
             CancellationTokenSource cancellationTokenSourceForKill = new CancellationTokenSource();
@@ -253,7 +247,7 @@ namespace ProvisioningBuildTools
                                 selectFrom = new frmSelectRemoteBranchPostBuild(this, this);
                                 break;
                             case ExecEnum.InstallSurfacePackage:
-                                selectFrom= new frmSelectPackagesInfo(this, this);                          
+                                selectFrom = new frmSelectPackagesInfo(this, this);
                                 break;
                             case ExecEnum.UploadProvisionTools:
                                 selectFrom = new frmSelectLoaclBranchForUPT(this, this);
@@ -305,10 +299,10 @@ namespace ProvisioningBuildTools
                                         };
                                     break;
                                 case ExecEnum.InstallSurfacePackage:
-                                    selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
+                                    selectPackagesInfoOutput = ((ISelect<SelectPackagesInfoOutput>)selectFrom).SelectResult;
                                     runAct = new List<Func<CommandResult>>()
                                     {
-                                        new Func<CommandResult>(() => Command.InstallSurfacePackage(null, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        new Func<CommandResult>(() => Command.InstallSurfacePackage(selectPackagesInfoOutput.GeneratePackageConfig, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                     };
                                     break;
                                 case ExecEnum.UploadProvisionTools:

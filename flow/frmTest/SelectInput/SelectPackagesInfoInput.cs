@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProvisioningBuildTools.SelectOutput;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,20 +13,19 @@ namespace ProvisioningBuildTools.SelectInput
 {
     public class SelectPackagesInfoInput
     {
-        private List<Package> m_Packages;
-        public  List<Package> Packages => m_Packages;
+        //private List<Package> m_Packages;
+        //public List<Package> Packages => m_Packages;
+
+        //public SelectPackagesInfoInput()
+        //{
+        //    m_Packages = new List<Package>();
+        //}    
+
+        public List<Package> Packages { get; set; }
 
         public SelectPackagesInfoInput()
         {
-            m_Packages = new List<Package>();
-        }
-
-        public class Package
-        {
-            public string Id { get; set; }
-            public string Version { get; set; }
-
-            public string Source { get; set; }
+            Packages = new List<Package>();
         }
     }
 }
