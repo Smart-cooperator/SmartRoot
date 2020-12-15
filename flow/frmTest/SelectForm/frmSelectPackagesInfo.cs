@@ -43,6 +43,11 @@ namespace ProvisioningBuildTools.SelectForm
             int errorCol = -1;
             int errorRow = -1;
 
+            if (dgvPackages.Rows.Count == 0)
+            {
+                return;
+            }
+
             for (int i = 0; i < dgvPackages.Rows.Count; i++)
             {
                 for (int j = 0; j < dgvPackages.Rows[i].Cells.Count; j++)
