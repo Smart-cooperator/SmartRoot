@@ -914,13 +914,19 @@ namespace Utilities
             if (match86.Success)
             {
                 int index86 = rsxx86Folder.IndexOf(match86.Groups["86"].Value.Replace('/', '\\'));
-                dropPath86 = rsxx86Folder.Substring(0, index86);
+                if (index86>0)
+                {
+                    dropPath86 = rsxx86Folder.Substring(0, index86);
+                }
             }
 
             if (match64.Success)
             {
                 int index64 = rsxPlatform64Folder.IndexOf(match64.Groups["64"].Value.Replace('/', '\\'));
-                dropPath64 = rsxPlatform64Folder.Substring(0, index64);
+                if (index64>0)
+                {
+                    dropPath64 = rsxPlatform64Folder.Substring(0, index64);
+                }
             }
 
             if (string.IsNullOrEmpty(dropPath64) || string.IsNullOrEmpty(dropPath86) || dropPath86 != dropPath64)
