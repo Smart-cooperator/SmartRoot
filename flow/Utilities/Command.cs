@@ -20,7 +20,7 @@ namespace Utilities
         public const string EWDKPATH = @"C:\17134.1.3";
         public const string EWDKCMD = @"LaunchBuildEnv.cmd";
         public const string CMD = "cmd";
-        public const string NUGETPROVISIONINGCLIENTCMD = @"Nuget Install .\Source\ProvisioningClient\packages.config -ConfigFile Nuget.config -OutputDirectory .\packages";
+        public const string NUGETPACKAGECONFIGCMD = @"Nuget Install {0} -ConfigFile Nuget.config -OutputDirectory .\packages";
         // public const string MAINWINDOWSTIELE = @"Administrator:  ""Vs2017 & WDK Build Env WDKContentRoot: C:\17134.1.3\Program Files\Windows Kits\10\""";
         public static readonly string REPOSFOLDER = $@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\source\repos\";
         public static readonly string BUILDSCRIPTSFOLDER = Path.Combine($@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\source\repos\", "{0}", "BuildScripts");
@@ -31,11 +31,13 @@ namespace Utilities
         //public const string BUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x86""";
         //public const string BUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x64""";
         public const string REBUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x86""";
-        public const string REBUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x64""";
+        //public const string REBUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x64""";
+        public const string REBUILDPLATFORM64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|{0}""";
         public const string DEBUG = @"Debug";
         public const string EXTERNALDROPS = @"ExternalDrops";
         public const string DEBUGX86BIN = @"Debug\x86\bin";
-        public const string DEBUGX64BIN = @"Debug\x64\bin";
+        //public const string DEBUGX64BIN = @"Debug\x64\bin";
+        public const string DEBUGPLATFORM64BIN = @"Debug\{0}\bin";
         public const string CREATEPACKAGE = @"CreatePackage.cmd Debug";
         public const string CREATEPACKAGECMD = @"CreatePackage.cmd";
         public const string INITCMD = "init.cmd";
@@ -53,9 +55,10 @@ namespace Utilities
         public static readonly string PERSONAL = $"personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
         public const string PRODUCTBRANCHFILTER = "origin/product/{0}/";
         public const string DESMOBUILDFOLDER = @"\\desmo\release\Vulcan\CI_DeviceProvisioning\refs\heads\";
-        public const string RS4 = @"RS4";
-        public const string RS4X86DEBUG = @"Drop_RS4_x86_Debug";
-        public const string RS4X64DEBUG = @"Drop_RS4_x64_Debug";
+        public const string RSX = @"RS*";
+        public const string RSXX86DEBUG = @"Drop_RS*_x86_Debug";
+        //public const string RS4X64DEBUG = @"Drop_RS4_x64_Debug";
+        public const string RSXPLATFORM64DEBUG = @"Drop_RS*_*64_Debug";
         public const string PROVISIONINGPACKAGE = @"ProvisioningPackage";
         public const string POSTBUILDPACKAGENAME = @"Provisioning_{0}_Debug";
         public const string CREATEHASHANDVERSION = @"CreateHashAndVersion.cmd";
@@ -303,14 +306,14 @@ namespace Utilities
             return Run(Path.Combine(REPOSFOLDER, projectName), OPENREPOSSLN, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
         }
 
-        public static CommandResult NugetProvisioningClient(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult NugetPackageConfig(string projectName, string packageConfig, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
             if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
             {
                 throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), NUGETPROVISIONINGCLIENTCMD, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(Path.Combine(REPOSFOLDER, projectName), string.Format(NUGETPACKAGECONFIGCMD, packageConfig), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
         public static CommandResult RebulidX86(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
@@ -333,19 +336,36 @@ namespace Utilities
             return Run(Path.Combine(REPOSFOLDER, projectName), REBUILDX86, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
         }
 
-        public static CommandResult RebulidX64(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        //public static CommandResult RebulidX64(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        //{
+        //    if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
+        //    {
+        //        throw new FileNotFoundException($"{ REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+        //    }
+
+        //    if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)))
+        //    {
+        //        Directory.Delete(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN), true);
+        //    }
+
+        //    return Run(Path.Combine(REPOSFOLDER, projectName), REBUILDX64, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
+        //}
+
+        public static CommandResult RebulidPlatform64(string projectName, string platform64, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
             if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
             {
                 throw new FileNotFoundException($"{ REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
             }
 
-            if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)))
+            string platform64DebugBinFolder = string.Format(Path.Combine(REPOSFOLDER, projectName, DEBUGPLATFORM64BIN), platform64);
+
+            if (Directory.Exists(platform64DebugBinFolder))
             {
-                Directory.Delete(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN), true);
+                Directory.Delete(platform64DebugBinFolder, true);
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), REBUILDX64, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
+            return Run(Path.Combine(REPOSFOLDER, projectName), string.Format(REBUILDPLATFORM64, platform64), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
         }
 
         public static CommandResult RebulidAll(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
@@ -366,11 +386,45 @@ namespace Utilities
 
             if (commandResult.ExitCode == 0)
             {
-                return RebulidX64(projectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                string platform64 = GetPlatform64(projectName);
+
+                if (string.IsNullOrEmpty(platform64))
+                {
+                    return commandResult;
+                }
+                else
+                {
+                    return RebulidPlatform64(projectName, platform64, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                }
             }
             else
             {
                 return commandResult;
+            }
+        }
+
+        private static string GetPlatform64(string projectName)
+        {
+            string vcProject = Directory.EnumerateFiles(Path.Combine(REPOSFOLDER, projectName, "Source"), "*.vcxproj", SearchOption.AllDirectories).FirstOrDefault();
+            if (File.Exists(vcProject))
+            {
+                string pattern = @"<Platform>(?<Platform>\S+?)</Platform>";
+                Regex regex = new Regex(pattern);
+
+                Match match = regex.Match(File.ReadAllText(vcProject));
+
+                if (match.Success)
+                {
+                    return match.Groups["Platform"].Value;
+                }
+                else
+                {
+                    throw new Exception($"Platform not found in {vcProject}");
+                }
+            }
+            else
+            {
+                return null;
             }
         }
 
@@ -381,9 +435,17 @@ namespace Utilities
                 throw new FileNotFoundException($"{CREATEPACKAGECMD} not found", Path.Combine(REPOSFOLDER, projectName, CREATEPACKAGECMD));
             }
 
-            if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)) || Directory.GetFiles(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)).Length == 0)
+            //if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)) || Directory.GetFiles(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)).Length == 0)
+            //{
+            //    throw new FileNotFoundException($"{DEBUGX64BIN} not found", Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN));
+            //}
+
+            string platform64 = GetPlatform64(projectName);
+            string platform64DebugBinFolder = string.Format(Path.Combine(REPOSFOLDER, projectName, DEBUGPLATFORM64BIN), platform64);
+
+            if (!Directory.Exists(platform64DebugBinFolder) || Directory.GetFiles(platform64DebugBinFolder).Length == 0)
             {
-                throw new FileNotFoundException($"{DEBUGX64BIN} not found", Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN));
+                throw new FileNotFoundException($"{string.Format(DEBUGPLATFORM64BIN, platform64)} not found", platform64DebugBinFolder);
             }
 
             if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN)) || Directory.GetFiles(Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN)).Length == 0)
@@ -722,13 +784,13 @@ namespace Utilities
                     throw new Exception($"Project:{newProjectName} Action:{UpdateExternalDropsCMD} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                if (File.Exists(Path.Combine(REPOSFOLDER, projectName, @"Source\ProvisioningClient\packages.config")))
+                foreach (var packageConfig in Directory.EnumerateFiles(Path.Combine(REPOSFOLDER, projectName, "Source"), "packages.config", SearchOption.AllDirectories))
                 {
-                    commandResult = NugetProvisioningClient(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                    commandResult = NugetPackageConfig(newProjectName, packageConfig, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                     if (commandResult.ExitCode != 0)
                     {
-                        throw new Exception($"Project:{newProjectName} Action:NugetProvisioningClient failed!!! Error:{commandResult.ErrorOutput}");
+                        throw new Exception($"Project:{newProjectName} Action:NugetPackageConfig config:{packageConfig} failed!!! Error:{commandResult.ErrorOutput}");
                     }
                 }
 
@@ -789,25 +851,96 @@ namespace Utilities
 
             string postBuildPS1Conext = File.ReadAllText(Path.Combine(localFolder, PSOTBUILDPS1));
 
-            if (!Directory.Exists(Path.Combine(dropPath, RS4, RS4X86DEBUG)) || !Directory.Exists(Path.Combine(dropPath, RS4, RS4X64DEBUG)))
-            {
-                throw new FileNotFoundException($"Server Build not found", Path.Combine(dropPath, RS4));
-            }
+            //if (!Directory.Exists(Path.Combine(dropPath, RS4, RS4X86DEBUG)) || !Directory.Exists(Path.Combine(dropPath, RS4, RS4X64DEBUG)))
+            //{
+            //    throw new FileNotFoundException($"Server Build not found", Path.Combine(dropPath, RS4));
+            //}
+
+            //CommandResult commandResult;
+
+            //if (postBuildPS1Conext.Contains(Path.Combine(RS4, RS4X86DEBUG)) && postBuildPS1Conext.Contains(Path.Combine(RS4, RS4X64DEBUG)))
+            //{
+            //    commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {dropPath}\\", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            //}
+            //else if (postBuildPS1Conext.Contains(RS4X86DEBUG) && postBuildPS1Conext.Contains(RS4X64DEBUG))
+            //{
+            //    commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {Path.Combine(dropPath, RS4)}\\", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            //}
+            //else
+            //{
+            //    throw new Exception($"Pls check NativeItemsPath and ManagedItemsPath in {Path.Combine(localFolder, PSOTBUILDPS1)} path not include {RS4}");
+            //}
 
             CommandResult commandResult;
 
-            if (postBuildPS1Conext.Contains(Path.Combine(RS4, RS4X86DEBUG)) && postBuildPS1Conext.Contains(Path.Combine(RS4, RS4X64DEBUG)))
+            bool hasServerBuild = false;
+            string rsxFolder = null;
+            string rsxx86Folder = null;
+            string rsxPlatform64Folder = null;
+            string dropPath64 = null;
+            string dropPath86 = null;
+
+
+            if (Directory.Exists(dropPath))
             {
-                commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {dropPath}\\", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                rsxFolder = Directory.EnumerateDirectories(dropPath, RSX, SearchOption.TopDirectoryOnly).FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(rsxFolder))
+                {
+                    rsxx86Folder = Directory.EnumerateDirectories(rsxFolder, RSXX86DEBUG, SearchOption.TopDirectoryOnly).FirstOrDefault();
+                    rsxPlatform64Folder = Directory.EnumerateDirectories(rsxFolder, RSXPLATFORM64DEBUG, SearchOption.TopDirectoryOnly).FirstOrDefault();
+
+                    if (!string.IsNullOrEmpty(rsxx86Folder) && !string.IsNullOrEmpty(rsxx86Folder))
+                    {
+                        hasServerBuild = true;
+                    }
+                }
             }
-            else if (postBuildPS1Conext.Contains(RS4X86DEBUG) && postBuildPS1Conext.Contains(RS4X64DEBUG))
+
+            if (!hasServerBuild)
             {
-                commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {Path.Combine(dropPath, RS4)}\\", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                throw new FileNotFoundException($"Server Build not found", dropPath);
             }
-            else
+
+            string pattern86 = @"\$ManagedItemsPath\s+=\s+\$DropPath\s+\+\s+""(?<86>\S+86_Debug)";           
+            string pattern64 = @"\$NativeItemsPath\s+=\s+\$DropPath\s+\+\s+""(?<64>\S+64_Debug)";
+
+            Regex regex86 = new Regex(pattern86);
+            Regex regex64 = new Regex(pattern64);
+
+            Match match86 = regex86.Match(postBuildPS1Conext);
+            Match match64 = regex64.Match(postBuildPS1Conext);
+
+            if (match86.Success)
             {
-                throw new Exception($"Pls check NativeItemsPath and ManagedItemsPath in {Path.Combine(localFolder, PSOTBUILDPS1)} path not include {RS4}");
+                int index86 = rsxx86Folder.IndexOf(match86.Groups["86"].Value.Replace('/', '\\'));
+                dropPath86 = rsxx86Folder.Substring(0, index86);
             }
+
+            if (match64.Success)
+            {
+                int index64 = rsxPlatform64Folder.IndexOf(match64.Groups["64"].Value.Replace('/', '\\'));
+                dropPath64 = rsxPlatform64Folder.Substring(0, index64);
+            }
+
+            if (string.IsNullOrEmpty(dropPath64) || string.IsNullOrEmpty(dropPath86) || dropPath86 != dropPath64)
+            {
+                throw new Exception($"Pls check NativeItemsPath and ManagedItemsPath in {Path.Combine(localFolder, PSOTBUILDPS1)} mismatch with {rsxx86Folder} and {rsxPlatform64Folder} !!!");
+            }
+
+            if (Directory.Exists(Path.Combine(localFolder, string.Format(POSTBUILDPACKAGENAME, deviceName))))
+            {
+                Directory.Delete(Path.Combine(localFolder, string.Format(POSTBUILDPACKAGENAME, deviceName)), true);
+            }
+
+            string zipFileName = $"{version}_{string.Format(POSTBUILDPACKAGENAME, deviceName)}.zip";
+
+            if (File.Exists(Path.Combine(localFolder, zipFileName)))
+            {
+                File.Delete(Path.Combine(localFolder, zipFileName));
+            }
+
+            commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {dropPath86}", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             if (commandResult.ExitCode == 0)
             {
@@ -815,8 +948,6 @@ namespace Utilities
                 {
                     throw new FileNotFoundException($"{string.Format(POSTBUILDPACKAGENAME, deviceName)} not found", Path.Combine(localFolder, string.Format(POSTBUILDPACKAGENAME, deviceName)));
                 }
-
-                string zipFileName = $"{version}_{string.Format(POSTBUILDPACKAGENAME, deviceName)}.zip";
 
                 ZipFile.CreateFromDirectory(Path.Combine(localFolder, string.Format(POSTBUILDPACKAGENAME, deviceName)), Path.Combine(localFolder, zipFileName));
 
@@ -925,7 +1056,7 @@ namespace Utilities
 
             Directory.Delete(tempFolder, true);
 
-            string pattern = @"Get-Item : (?<Error>Package '[\S\s]+?' is not found)";   
+            string pattern = @"Get-Item : (?<Error>Package '[\S\s]+?' is not found)";
 
             if (!string.IsNullOrEmpty(commandResult.ErrorOutput))
             {
