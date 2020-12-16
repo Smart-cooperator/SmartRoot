@@ -61,6 +61,8 @@ namespace ProvisioningBuildTools.SelectOutput
                                             root.LastChild.Attributes["id"].Value = package.Id;
                                             root.LastChild.Attributes["source"].Value = package.Source;
                                             root.LastChild.Attributes["Version"].Value = package.Version;
+                                            root.LastChild.Attributes["UseDangerDestination"].Value = "True";
+                                            root.LastChild.Attributes["destination"].Value = Path.Combine("Packages", package.Id, versionStr); ;
                                         }
 
                                         packageDoc.Save(packageConfigFile);
