@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackGroundCommand.cs" />
+    <Compile Include="Enhancelog.cs" />
     <Compile Include="ExecEnum.cs" />
     <Compile Include="frmProvisioningBuildTools.cs">
       <SubType>Form</SubType>

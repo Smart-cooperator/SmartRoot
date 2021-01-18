@@ -20,6 +20,7 @@ namespace ProvisioningBuildTools
 {
     public partial class frmProvisioningBuildTools : Form, ICommandNotify, ILogNotify
     {
+        private Enhancelog Log;
         public frmProvisioningBuildTools()
         {
             InitializeComponent();
@@ -42,70 +43,79 @@ namespace ProvisioningBuildTools
 
         public void WriteOutPut(int processId, string outputLine)
         {
-            if (!this.InvokeRequired)
-            {
-                //richTextBox1.AppendText($"ProcessId {processId}:{outputLine}{Environment.NewLine}");
-                // richTextBox1.AppendText($"{outputLine}{Environment.NewLine}");
-                AppenLine(outputLine);
-            }
-            else
-            {
-                this.BeginInvoke(new Action<int, string>(WriteOutPut), processId, outputLine);
-            }
+            //if (!this.InvokeRequired)
+            //{
+            //    //richTextBox1.AppendText($"ProcessId {processId}:{outputLine}{Environment.NewLine}");
+            //    // richTextBox1.AppendText($"{outputLine}{Environment.NewLine}");
+            //    AppenLine(outputLine);
+            //}
+            //else
+            //{
+            //    this.BeginInvoke(new Action<int, string>(WriteOutPut), processId, outputLine);
+            //}
+            Log.AppenLine(outputLine);
         }
 
         public void WriteErrorOutPut(int processId, string errorLine)
         {
-            if (!this.InvokeRequired)
-            {
-                //richTextBox1.AppendText($"ProcessId {processId}:{errorLine}{Environment.NewLine}");
-                //richTextBox1.AppendText($"{errorLine}{Environment.NewLine}");
-                AppenLine(errorLine, true);
-            }
-            else
-            {
-                this.BeginInvoke(new Action<int, string>(WriteErrorOutPut), processId, errorLine);
-            }
+            //if (!this.InvokeRequired)
+            //{
+            //    //richTextBox1.AppendText($"ProcessId {processId}:{errorLine}{Environment.NewLine}");
+            //    //richTextBox1.AppendText($"{errorLine}{Environment.NewLine}");
+            //    AppenLine(errorLine, true);
+            //}
+            //else
+            //{
+            //    this.BeginInvoke(new Action<int, string>(WriteErrorOutPut), processId, errorLine);
+            //}
+
+            Log.AppenLine(errorLine, true);
         }
 
         public void Exit(int processId, int exitCode)
         {
-            if (!this.InvokeRequired)
-            {
-                //richTextBox1.AppendText($"ProcessId {processId}:ExitCode {exitCode}{Environment.NewLine}");
-                //richTextBox1.AppendText($"ExitCode {exitCode}{Environment.NewLine}");
-                AppenLine($"ExitCode {exitCode}");
-            }
-            else
-            {
-                this.BeginInvoke(new Action<int, int>(Exit), processId, exitCode);
-            }
+            //if (!this.InvokeRequired)
+            //{
+            //    //richTextBox1.AppendText($"ProcessId {processId}:ExitCode {exitCode}{Environment.NewLine}");
+            //    //richTextBox1.AppendText($"ExitCode {exitCode}{Environment.NewLine}");
+            //    AppenLine($"ExitCode {exitCode}");
+            //}
+            //else
+            //{
+            //    this.BeginInvoke(new Action<int, int>(Exit), processId, exitCode);
+            //}
+
+            Log.AppenLine($"ExitCode {exitCode}");
         }
 
         public void WriteLog(string logLine, bool hasError = false)
         {
-            if (!this.InvokeRequired)
-            {
-                //richTextBox1.AppendText($"{logLine}{Environment.NewLine}");
-                AppenLine(logLine, !hasError ? Color.LightGreen : Color.Red);
-            }
-            else
-            {
-                this.BeginInvoke(new Action<string, bool>(WriteLog), logLine, hasError);
-            }
+            //if (!this.InvokeRequired)
+            //{
+            //    //richTextBox1.AppendText($"{logLine}{Environment.NewLine}");
+            //    AppenLine(logLine, !hasError ? Color.LightGreen : Color.Red);
+            //}
+            //else
+            //{
+            //    this.BeginInvoke(new Action<string, bool>(WriteLog), logLine, hasError);
+            //}
+
+            Log.AppenLine(logLine, !hasError ? Color.LightGreen : Color.Red);
         }
 
         public void WriteLog(Exception ex)
         {
-            if (!this.InvokeRequired)
-            {
-                //richTextBox1.AppendText($"{logLine}{Environment.NewLine}");
-                AppenLine($"throw exception:{ex.Message}", true);
-            }
-            else
-            {
-                this.BeginInvoke(new Action<Exception>(WriteLog), ex);
-            }
+            //if (!this.InvokeRequired)
+            //{
+            //    //richTextBox1.AppendText($"{logLine}{Environment.NewLine}");
+            //    AppenLine($"throw exception:{ex.Message}", true);
+            //}
+            //else
+            //{
+            //    this.BeginInvoke(new Action<Exception>(WriteLog), ex);
+            //}
+
+            Log.AppenLine($"throw exception:{ex.Message}", true);
         }
 
         private void frmProvisioningBuildTools_Load(object sender, EventArgs e)
@@ -143,6 +153,9 @@ namespace ProvisioningBuildTools
                 //this.Text = $"Administrator: {this.Text}(Owner by v-fengzhou@microsoft.com)";
 
                 btnClear.PerformClick();
+
+                Log = new Enhancelog(rtbCMD);
+                Log.Start();
             }
             else
             {
@@ -206,7 +219,8 @@ namespace ProvisioningBuildTools
             }
             catch (Exception ex)
             {
-                this.BeginInvoke(new Action<Exception>(WriteLog), ex);
+                //this.BeginInvoke(new Action<Exception>(WriteLog), ex);
+                WriteLog(ex);
                 this.Enabled = false;
             }
         }
@@ -326,7 +340,8 @@ namespace ProvisioningBuildTools
             }
             catch (Exception ex)
             {
-                this.BeginInvoke(new Action<Exception>(WriteLog), ex);
+                // this.BeginInvoke(new Action<Exception>(WriteLog), ex);
+                WriteLog(ex);
             }
         }
 
@@ -342,7 +357,8 @@ namespace ProvisioningBuildTools
             }
             catch (Exception ex)
             {
-                this.BeginInvoke(new Action<Exception>(WriteLog), ex);
+                //this.BeginInvoke(new Action<Exception>(WriteLog), ex);
+                WriteLog(ex);
             }
         }
 
@@ -358,7 +374,8 @@ namespace ProvisioningBuildTools
             }
             catch (Exception ex)
             {
-                this.BeginInvoke(new Action<Exception>(WriteLog), ex);
+                //this.BeginInvoke(new Action<Exception>(WriteLog), ex);
+                WriteLog(ex);
             }
         }
         private void EnableRun(bool enable = true)

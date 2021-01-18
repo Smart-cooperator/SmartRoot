@@ -92,9 +92,9 @@ namespace Utilities
             StringBuilder tempStandOutput = new StringBuilder();
             StringBuilder tempErrorOutput = new StringBuilder();
 
-            AutoResetEvent exitPutWaitHandle = new AutoResetEvent(false);
-            AutoResetEvent standOutputWaitHandle = new AutoResetEvent(false);
-            AutoResetEvent errorOutputWaitHandle = new AutoResetEvent(false);
+            ManualResetEvent exitPutWaitHandle = new ManualResetEvent(false);
+            ManualResetEvent standOutputWaitHandle = new ManualResetEvent(false);
+            ManualResetEvent errorOutputWaitHandle = new ManualResetEvent(false);
 
             using (Process p = new Process())
             {
@@ -213,22 +213,22 @@ namespace Utilities
                     }
                 }
 
+                bool killed = false;
+
                 //p.WaitForExit();
                 if (cancellationTokenSourceForKill != null && cancellationTokenSourceForKill.Token != CancellationToken.None)
                 {
-                    while (!exitPutWaitHandle.WaitOne(100) && !standOutputWaitHandle.WaitOne(100) && !errorOutputWaitHandle.WaitOne(100))
+                    while (!exitPutWaitHandle.WaitOne(100))
                     {
                         if (cancellationTokenSourceForKill.Token.IsCancellationRequested)
                         {
                             p.Kill();
+                            killed = true;
                         }
                     }
-
-                    exitPutWaitHandle.WaitOne();
-                    standOutputWaitHandle.WaitOne();
-                    errorOutputWaitHandle.WaitOne();
                 }
-                else
+
+                if (!killed)
                 {
                     exitPutWaitHandle.WaitOne();
                     standOutputWaitHandle.WaitOne();
