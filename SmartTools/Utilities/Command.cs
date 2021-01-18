@@ -92,7 +92,9 @@ namespace Utilities
             StringBuilder tempStandOutput = new StringBuilder();
             StringBuilder tempErrorOutput = new StringBuilder();
 
-            AutoResetEvent outPutWaitHandle = new AutoResetEvent(false);
+            AutoResetEvent exitPutWaitHandle = new AutoResetEvent(false);
+            AutoResetEvent standOutputWaitHandle = new AutoResetEvent(false);
+            AutoResetEvent errorOutputWaitHandle = new AutoResetEvent(false);
 
             using (Process p = new Process())
             {
@@ -138,9 +140,17 @@ namespace Utilities
                 p.OutputDataReceived += new DataReceivedEventHandler(
                     (object sender, DataReceivedEventArgs e) =>
                     {
+                        bool exit = false;
+
                         if (e.Data == null)
                         {
+                            standOutputWaitHandle.Set();
                             return;
+                        }
+
+                        if (e.Data.EndsWith(">exit"))
+                        {
+                            exit = true;
                         }
 
                         if (cmd != null && cmd.Contains(string.Format(GETBRANCHLOG, string.Empty)) && tempStandOutput.ToString().Contains("commit") && tempStandOutput.ToString().Contains("Date:"))
@@ -149,6 +159,12 @@ namespace Utilities
                         }
 
                         commandNotify?.WriteOutPut(((Process)sender).Id, e.Data); tempStandOutput.AppendLine(e.Data);
+
+                        if (exit)
+                        {
+                            standOutputWaitHandle.Set();
+                            errorOutputWaitHandle.Set();
+                        }
                     });
 
                 p.ErrorDataReceived += new DataReceivedEventHandler(
@@ -156,6 +172,7 @@ namespace Utilities
                     {
                         if (e.Data == null)
                         {
+                            errorOutputWaitHandle.Set();
                             return;
                         }
 
@@ -166,12 +183,12 @@ namespace Utilities
                 p.Exited += new EventHandler(
                     (object sender, EventArgs e) =>
                     {
-                        Thread.Sleep(5);
+                        //Thread.Sleep(5);
 
                         tempExitCode = ((Process)sender).ExitCode;
                         commandNotify?.Exit(((Process)sender).Id, ((Process)sender).ExitCode);
 
-                        outPutWaitHandle.Set();
+                        exitPutWaitHandle.Set();
                     });
 
 
@@ -199,17 +216,23 @@ namespace Utilities
                 //p.WaitForExit();
                 if (cancellationTokenSourceForKill != null && cancellationTokenSourceForKill.Token != CancellationToken.None)
                 {
-                    while (!outPutWaitHandle.WaitOne(100))
+                    while (!exitPutWaitHandle.WaitOne(100) && !standOutputWaitHandle.WaitOne(100) && !errorOutputWaitHandle.WaitOne(100))
                     {
                         if (cancellationTokenSourceForKill.Token.IsCancellationRequested)
                         {
                             p.Kill();
                         }
                     }
+
+                    exitPutWaitHandle.WaitOne();
+                    standOutputWaitHandle.WaitOne();
+                    errorOutputWaitHandle.WaitOne();
                 }
                 else
                 {
-                    outPutWaitHandle.WaitOne();
+                    exitPutWaitHandle.WaitOne();
+                    standOutputWaitHandle.WaitOne();
+                    errorOutputWaitHandle.WaitOne();
                 }
 
                 p.CancelErrorRead();
@@ -902,7 +925,7 @@ namespace Utilities
                 throw new FileNotFoundException($"Server Build not found", dropPath);
             }
 
-            string pattern86 = @"\$ManagedItemsPath\s+=\s+\$DropPath\s+\+\s+""(?<86>\S+86_Debug)";           
+            string pattern86 = @"\$ManagedItemsPath\s+=\s+\$DropPath\s+\+\s+""(?<86>\S+86_Debug)";
             string pattern64 = @"\$NativeItemsPath\s+=\s+\$DropPath\s+\+\s+""(?<64>\S+64_Debug)";
 
             Regex regex86 = new Regex(pattern86);
@@ -914,7 +937,7 @@ namespace Utilities
             if (match86.Success)
             {
                 int index86 = rsxx86Folder.IndexOf(match86.Groups["86"].Value.Replace('/', '\\'));
-                if (index86>0)
+                if (index86 > 0)
                 {
                     dropPath86 = rsxx86Folder.Substring(0, index86);
                 }
@@ -923,7 +946,7 @@ namespace Utilities
             if (match64.Success)
             {
                 int index64 = rsxPlatform64Folder.IndexOf(match64.Groups["64"].Value.Replace('/', '\\'));
-                if (index64>0)
+                if (index64 > 0)
                 {
                     dropPath64 = rsxPlatform64Folder.Substring(0, index64);
                 }
