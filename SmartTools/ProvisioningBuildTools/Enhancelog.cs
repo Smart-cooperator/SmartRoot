@@ -97,7 +97,7 @@ namespace ProvisioningBuildTools
 
                     if (DateTime.Now.Subtract(tempDateTime).TotalSeconds >= 3)
                     {
-                        Thread.Sleep(50);
+                        Thread.Sleep(1);
                         tempDateTime = DateTime.Now;
                     }
                 }
