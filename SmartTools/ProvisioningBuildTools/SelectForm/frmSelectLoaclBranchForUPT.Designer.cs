@@ -59,7 +59,7 @@
             this.cmbLocalBranches.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbLocalBranches.FormattingEnabled = true;
             this.cmbLocalBranches.IntegralHeight = false;
-            this.cmbLocalBranches.Location = new System.Drawing.Point(380, 27);
+            this.cmbLocalBranches.Location = new System.Drawing.Point(350, 27);
             this.cmbLocalBranches.Name = "cmbLocalBranches";
             this.cmbLocalBranches.Size = new System.Drawing.Size(185, 24);
             this.cmbLocalBranches.TabIndex = 2;
@@ -69,12 +69,12 @@
             // 
             this.lblReposFolder.Anchor = System.Windows.Forms.AnchorStyles.Right;
             this.lblReposFolder.AutoSize = true;
-            this.lblReposFolder.Location = new System.Drawing.Point(89, 27);
+            this.lblReposFolder.Location = new System.Drawing.Point(130, 30);
             this.lblReposFolder.Name = "lblReposFolder";
             this.lblReposFolder.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.lblReposFolder.Size = new System.Drawing.Size(228, 17);
+            this.lblReposFolder.Size = new System.Drawing.Size(163, 17);
             this.lblReposFolder.TabIndex = 3;
-            this.lblReposFolder.Text = "C:\\Users\\v-fengzhou\\source\\repos\\";
+            this.lblReposFolder.Text = "LocalProvisioningPorject";
             // 
             // frmSelectLoaclBranchForUPT
             // 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProvisioningBuildTools.SelectInput;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,8 +9,8 @@ namespace ProvisioningBuildTools.SelectOutput
 {
     public class SelectLocalBranchOutput
     {
-        private string m_SelectedLocalBranch;
-        public string SelectedLocalBranch => m_SelectedLocalBranch;
+        private LocalProjectInfo m_SelectedLocalProjectInfo;
+        public LocalProjectInfo SelectedLocalProjectInfo => m_SelectedLocalProjectInfo;
 
         private string m_ProvisioningToolsPackageId;
         public string ProvisioningToolsPackageId => m_ProvisioningToolsPackageId;
@@ -20,14 +21,14 @@ namespace ProvisioningBuildTools.SelectOutput
         private Action<string> m_UpdateNewVersionAction;
         public Action<string> UpdateNewVersionAction => m_UpdateNewVersionAction;
 
-        public SelectLocalBranchOutput(string selectedLocalBranch)
+        public SelectLocalBranchOutput(LocalProjectInfo selectedLocalProjectInfo)
         {
-            m_SelectedLocalBranch = selectedLocalBranch;
+            m_SelectedLocalProjectInfo = selectedLocalProjectInfo;
         }
 
-        public SelectLocalBranchOutput(string selectedLocalBranch,string provisioningToolsPackageId,string provisioningToolsPackageDestination,Action<string> updateNewVersionAction)
+        public SelectLocalBranchOutput(LocalProjectInfo selectedLocalProjectInfo, string provisioningToolsPackageId,string provisioningToolsPackageDestination,Action<string> updateNewVersionAction)
         {
-            m_SelectedLocalBranch = selectedLocalBranch;
+            m_SelectedLocalProjectInfo = selectedLocalProjectInfo;
             m_ProvisioningToolsPackageId = provisioningToolsPackageId;
             m_ProvisioningToolsPackageDestination = provisioningToolsPackageDestination;
             m_UpdateNewVersionAction = updateNewVersionAction;

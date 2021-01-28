@@ -17,25 +17,30 @@ namespace ProvisioningBuildTools.SelectInput
 
         private Dictionary<string, BranchInfo> m_BranchInfos = new Dictionary<string, BranchInfo>();
 
-        private string newProjectName = null;
+        private string projectPath = null;
         private ICommandNotify commandNotify;
         private ILogNotify logNotify;
         private CommandResult commandResult;
         private CancellationTokenSource cancellationTokenSource = null;
+        private CancellationTokenSource cancellationTokenSourceForKill = null;
         private Action startInvoke;
         private Action endInvoke;
         private BackGroundCommand backGroundCommand = new BackGroundCommand();
 
-        public SelectRemoteBranchInput(ICommandNotify commandNotify, ILogNotify logNotify, Action startInvoke, Action endInvoke)
+        private SelectLocalBranchInput LocalBranchInput;
+
+        public SelectRemoteBranchInput(SelectLocalBranchInput localBranchInput,ICommandNotify commandNotify, ILogNotify logNotify, Action startInvoke, Action endInvoke)
         {
             this.commandNotify = commandNotify;
             this.logNotify = logNotify;
             this.startInvoke = startInvoke;
             this.endInvoke = endInvoke;
 
+            LocalBranchInput = localBranchInput;
+
             Action actRun = new Action(GetAllRemoteAct);
 
-            backGroundCommand.AsyncRun(actRun, startInvoke, endInvoke, cancellationTokenSource, logNotify);
+            backGroundCommand.AsyncRun(actRun, startInvoke, endInvoke, cancellationTokenSource, logNotify, cancellationTokenSourceForKill);
         }
 
 
@@ -51,7 +56,7 @@ namespace ProvisioningBuildTools.SelectInput
                 {
                     Action actRun = new Action(() => GetBranchInfoAct(branchName));
 
-                    backGroundCommand.AsyncRun(actRun, startInvoke, endInvoke, cancellationTokenSource, logNotify);
+                    backGroundCommand.AsyncRun(actRun, startInvoke, endInvoke, cancellationTokenSource, logNotify, cancellationTokenSourceForKill);
                 }
                 return null;
             }
@@ -61,38 +66,43 @@ namespace ProvisioningBuildTools.SelectInput
             }
         }
 
+        public void WaitAndGetTag(string branchName)
+        {
+            Action actRun = new Action(() => WaitAndGetTagAct(branchName));
+
+            backGroundCommand.AsyncRun(actRun, startInvoke, endInvoke, cancellationTokenSource, logNotify, cancellationTokenSourceForKill);
+        }
+
         private void GetAllRemoteAct()
         {
-            SelectLocalBranchInput selectLocalBranchInput = new SelectLocalBranchInput();
-
-            if (selectLocalBranchInput.LocalBranches == null || selectLocalBranchInput.LocalBranches.Length == 0)
+            if (LocalBranchInput.LocalBranches == null || LocalBranchInput.LocalBranches.Length == 0)
             {
-                newProjectName = "DeviceProvisioning";
+                projectPath = Path.Combine(Command.REPOSFOLDER, "DeviceProvisioning");
 
-                commandResult = Command.GitColne(newProjectName, commandNotify, logNotify, cancellationTokenSource);
+                commandResult = Command.GitColne(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception(string.Format($"Project:{newProjectName} Action:{Command.CLONEREPOS} failed!!! Error:{commandResult.ErrorOutput}", newProjectName));
+                    throw new Exception(string.Format($"Project:{projectPath} Action:{Command.CLONEREPOS} failed!!! Error:{commandResult.ErrorOutput}", projectPath));
                 }
             }
             else
             {
-                newProjectName = selectLocalBranchInput.LocalBranches[0];
+                projectPath = LocalBranchInput.GetProjectInfo(LocalBranchInput.LocalBranches[0]).SourceFolder;
             }
 
-            commandResult = Command.GitFetchAll(newProjectName, commandNotify, logNotify, cancellationTokenSource);
+            commandResult = Command.GitFetchAll(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             if (commandResult.ExitCode != 0)
             {
-                throw new Exception($"Project:{newProjectName} Action:{Command.FETCHALL} failed!!! Error:{commandResult.ErrorOutput}");
+                throw new Exception($"Project:{projectPath} Action:{Command.FETCHALL} failed!!! Error:{commandResult.ErrorOutput}");
             }
 
-            commandResult = Command.GitRemoteBranchList(newProjectName, commandNotify, logNotify, cancellationTokenSource);
+            commandResult = Command.GitRemoteBranchList(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             if (commandResult.ExitCode != 0)
             {
-                throw new Exception($"Project:{newProjectName} Action:{Command.LISTREMOTEBRANCH} failed!!! Error:{commandResult.ErrorOutput}");
+                throw new Exception($"Project:{projectPath} Action:{Command.LISTREMOTEBRANCH} failed!!! Error:{commandResult.ErrorOutput}");
             }
 
             IGrouping<string, string>[] groupBranches = commandResult.StandOutput.Split(Environment.NewLine.ToCharArray()).Where(branch => branch.Contains(string.Format(Command.PRODUCTBRANCHFILTER.TrimEnd('/'), string.Empty))).GroupBy(branch => branch.Split('/')[2]).ToArray();
@@ -102,11 +112,11 @@ namespace ProvisioningBuildTools.SelectInput
 
         private void GetBranchInfoAct(string branchName)
         {
-            commandResult = Command.GitLog(newProjectName, branchName, commandNotify, logNotify, cancellationTokenSource);
+            commandResult = Command.GitLog(projectPath, branchName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             if (commandResult.ExitCode != 0)
             {
-                throw new Exception(string.Format($"Project:{newProjectName} Action:{Command.GETBRANCHLOG} failed!!! Error:{commandResult.ErrorOutput}", branchName));
+                throw new Exception(string.Format($"Project:{projectPath} Action:{Command.GETBRANCHLOG} failed!!! Error:{commandResult.ErrorOutput}", branchName));
             }
             string tempBranchName = branchName.Replace("origin/", string.Empty).Replace("/", "_").Trim();
 
@@ -146,6 +156,104 @@ namespace ProvisioningBuildTools.SelectInput
             }
 
             m_BranchInfos[branchName] = new BranchInfo(branchName.Replace("origin/", string.Empty).Trim(), dateTime, tag);
+        }
+
+        private void WaitAndGetTagAct(string branchName)
+        {
+            int sleepLoopCount = 0;
+
+            TimeSpan timeSpan = TimeSpan.FromMinutes(15).Subtract(DateTime.Now.Subtract((DateTime)m_BranchInfos[branchName].LastModifiedTime));
+
+            double preSleepMinutes = 0;
+
+            if (timeSpan.TotalMinutes > 0)
+            {
+                preSleepMinutes = timeSpan.TotalMinutes;
+            }
+            else if (-timeSpan.TotalMinutes > TimeSpan.FromDays(1).TotalMinutes)
+            {
+                logNotify.WriteLog($"{branchName} Lastmodified time {(DateTime)m_BranchInfos[branchName].LastModifiedTime} over due 1 day, give up getting tag!!!", true);
+                return;
+            }
+
+            logNotify.WriteLog($"Start to wait {branchName} Tag Created, delay {preSleepMinutes} minutes for server build.");
+
+            sleepLoopCount = (int)(TimeSpan.FromMinutes(preSleepMinutes).TotalSeconds * 10);
+
+            for (int i = 0; i < sleepLoopCount; i++)
+            {
+                if (cancellationTokenSource != null && cancellationTokenSource.IsCancellationRequested)
+                {
+                    cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                }
+
+                if (cancellationTokenSourceForKill != null && cancellationTokenSourceForKill.IsCancellationRequested)
+                {
+                    cancellationTokenSourceForKill.Token.ThrowIfCancellationRequested();
+                }
+
+                Thread.Sleep(100);
+            }
+
+            for (int i = 0; i < 15; i++)
+            {
+                logNotify.WriteLog($"try to get {branchName} Tag,current retried count is {i}, limit is 15");
+
+                GetAllRemoteAct();
+
+                GetBranchInfoAct(branchName);
+
+                if (m_BranchInfos[branchName].Tag != null)
+                {
+                    logNotify.WriteLog($"got {branchName} Tag {m_BranchInfos[branchName].Tag}, done");
+
+                    return;
+                }
+
+                if (i == 14)
+                {
+                    logNotify.WriteLog($"Timed out to get {branchName} Tag, retried 15 count", true);
+                }
+                else
+                {
+                    logNotify.WriteLog($"Not got {branchName} Tag,current retried count is {i + 1}, limit is 15");
+                    logNotify.WriteLog($"Delay 1 minutes for next retry to get {branchName} Tag");
+
+                    sleepLoopCount = (int)(TimeSpan.FromMinutes(1).TotalSeconds * 10);
+
+                    for (int j = 0; j < sleepLoopCount; j++)
+                    {
+                        if (cancellationTokenSource != null && cancellationTokenSource.IsCancellationRequested)
+                        {
+                            cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                        }
+
+                        if (cancellationTokenSourceForKill != null && cancellationTokenSourceForKill.IsCancellationRequested)
+                        {
+                            cancellationTokenSourceForKill.Token.ThrowIfCancellationRequested();
+                        }
+
+                        Thread.Sleep(100);
+                    }
+                }
+            }
+        }
+
+        public Func<ICommandNotify, ILogNotify, CancellationTokenSource, CancellationTokenSource, Version> GenerateWaitGetTagFunc(string branchName)
+        {
+            return new Func<ICommandNotify, ILogNotify, CancellationTokenSource, CancellationTokenSource, Version>(
+                (commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill) =>
+                {
+                    this.commandNotify = commandNotify;
+                    this.logNotify = logNotify;
+                    this.cancellationTokenSource = cancellationTokenSource;
+                    this.cancellationTokenSourceForKill = cancellationTokenSourceForKill;
+
+                    WaitAndGetTagAct(branchName);
+
+                    return m_BranchInfos[branchName].Tag;
+                }
+                );
         }
     }
     public class BranchInfo

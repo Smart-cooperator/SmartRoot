@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Utilities;
 
 namespace ProvisioningBuildTools.SelectOutput
 {
@@ -22,7 +23,11 @@ namespace ProvisioningBuildTools.SelectOutput
         private Version m_Tag;
         public Version Tag => m_Tag;
 
-        public SelectRemoteBranchOutputPostBuild(object selectProject, object selectRemoteBranch, string tag, object localBuildScriptsFolder)
+        private Func<ICommandNotify, ILogNotify, CancellationTokenSource, CancellationTokenSource, Version> mWaitGetTag;
+
+        public Func<ICommandNotify, ILogNotify, CancellationTokenSource, CancellationTokenSource, Version> WaitGetTag => mWaitGetTag;
+
+        public SelectRemoteBranchOutputPostBuild(object selectProject, object selectRemoteBranch, string tag, object localBuildScriptsFolder, Func<ICommandNotify, ILogNotify, CancellationTokenSource, CancellationTokenSource, Version> waitGetTag)
         {
             m_SelectProject = selectProject?.ToString();
 
@@ -34,7 +39,9 @@ namespace ProvisioningBuildTools.SelectOutput
             m_SelectRemoteBranch = selectRemoteBranch?.ToString().Replace("origin/", string.Empty);
             m_Tag = string.IsNullOrWhiteSpace(tag) ? null : new Version(tag);
             m_LocalBuildScriptsFolder = localBuildScriptsFolder?.ToString();
+            mWaitGetTag = waitGetTag;
         }
+
         public SelectRemoteBranchOutputPostBuild()
         {
 

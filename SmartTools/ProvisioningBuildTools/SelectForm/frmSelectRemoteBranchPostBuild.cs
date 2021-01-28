@@ -25,7 +25,7 @@ namespace ProvisioningBuildTools.SelectForm
 
         private SelectRemoteBranchInput input;
 
-        private SelectLocalBranchInput inputLocalFolder = new SelectLocalBranchInput();
+        private SelectLocalBranchInput inputLocalFolder;
 
         private Action endInvoke;
         private Action startInvoke;
@@ -34,18 +34,24 @@ namespace ProvisioningBuildTools.SelectForm
 
         private bool GetBranchInfo { get; set; }
 
+        private object WaitStateLock = new object();
+
+        private bool WaitState { get; set; }
+
         private string GetBranchName { get; set; }
 
         public frmSelectRemoteBranchPostBuild(ILogNotify logNotify, ICommandNotify commandNotify)
         {
             InitializeComponent();
             LogNotify = logNotify;
-            CommandNotify = commandNotify;
+            CommandNotify = commandNotify;            
 
             endInvoke = new Action
                 (
                     () =>
                     {
+                        bool waitTag = GetWaitState();
+
                         lock (GetBranchInfoLock)
                         {
                             if (GetBranchInfo)
@@ -57,6 +63,23 @@ namespace ProvisioningBuildTools.SelectForm
 
                             EnableRun(true);
                         }
+
+                        if (waitTag)
+                        {
+                            Action action = new Action(
+                                () =>
+                                {
+                                    if (btnOK.Enabled)
+                                    {
+                                        btnOK.PerformClick();
+                                    }
+                                    else
+                                    {
+                                        btnCancel.PerformClick();
+                                    }
+                                });
+                            this.Invoke(action);
+                        }
                     }
                 );
 
@@ -65,7 +88,7 @@ namespace ProvisioningBuildTools.SelectForm
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            m_SelectResult = new SelectRemoteBranchOutputPostBuild(cmbProject.SelectedItem, cmbBranch.SelectedItem,this.txtTag.Text,cmdLocalBuildFolder.SelectedItem);
+            m_SelectResult = new SelectRemoteBranchOutputPostBuild(cmbProject.SelectedItem, cmbBranch.SelectedItem, this.txtTag.Text, cmdLocalBuildFolder.SelectedItem, input.GenerateWaitGetTagFunc(cmbBranch.SelectedItem.ToString()));
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
@@ -79,14 +102,17 @@ namespace ProvisioningBuildTools.SelectForm
         private void frmSelectRemoteBranchPostBuild_Load(object sender, EventArgs e)
         {
             this.btnOK.Enabled = false;
-            input = new SelectRemoteBranchInput(CommandNotify, LogNotify, startInvoke, endInvoke);
+            this.btnWait.Enabled = false;
+            SetWaitState(false);
+            inputLocalFolder = new SelectLocalBranchInput(LogNotify);
+            input = new SelectRemoteBranchInput(inputLocalFolder,CommandNotify, LogNotify, startInvoke, endInvoke);
         }
 
         private void EnableRun(bool enable = true)
         {
             if (this.InvokeRequired)
             {
-                this.BeginInvoke(new Action<bool>(EnableRun), enable);
+                this.Invoke(new Action<bool>(EnableRun), enable);
             }
             else
             {
@@ -113,9 +139,9 @@ namespace ProvisioningBuildTools.SelectForm
 
         private void cmbBranch_DropDown(object sender, EventArgs e)
         {
-            if (cmbProject.Items.Count != 0 && cmbBranch.Items.Count == 0 && !string.IsNullOrEmpty(cmbProject.SelectedItem.ToString()))
+            if (cmbProject.Items.Count != 0 && cmbBranch.Items.Count == 0 && !string.IsNullOrEmpty(cmbProject.SelectedItem?.ToString()))
             {
-                cmbBranch.Items.AddRange(input.Projects[cmbProject.SelectedItem.ToString()]);
+                cmbBranch.Items.AddRange(input.Projects[cmbProject.SelectedItem?.ToString()]);
             }
         }
 
@@ -128,9 +154,9 @@ namespace ProvisioningBuildTools.SelectForm
 
             cmdLocalBuildFolder.Items.Clear();
 
-            string project = cmbProject.SelectedItem.ToString();
+            string project = cmbProject.SelectedItem?.ToString();
 
-            cmdLocalBuildFolder.Items.AddRange(inputLocalFolder.LocalBranches.Where(localProject => localProject == project || localProject.StartsWith($"{project}_")).Select(str=>string.Format(Command.BUILDSCRIPTSFOLDER,str)).ToArray());
+            cmdLocalBuildFolder.Items.AddRange(inputLocalFolder.LocalBranches.Where(localProject => localProject.ToLower() == project.ToLower() || localProject.ToLower().StartsWith($"{project.ToLower()}_")).Select(str => inputLocalFolder.GetProjectInfo(str).BuildScriptsFolder).ToArray());
 
             if (cmdLocalBuildFolder.Items.Count != 0)
             {
@@ -140,13 +166,18 @@ namespace ProvisioningBuildTools.SelectForm
 
         private void cmbBranch_SelectedIndexChanged(object sender, EventArgs e)
         {
+            this.btnOK.Enabled = false;
+            this.btnWait.Enabled = false;
+
+            SetWaitState(false);
+
             lock (GetBranchInfoLock)
             {
-                BranchInfo branchInfo = input.GetBranchInfo(cmbBranch.SelectedItem.ToString());
+                BranchInfo branchInfo = input.GetBranchInfo(cmbBranch.SelectedItem?.ToString());
 
                 if (branchInfo == null)
                 {
-                    GetBranchName = cmbBranch.SelectedItem.ToString();
+                    GetBranchName = cmbBranch.SelectedItem?.ToString();
                     GetBranchInfo = true;
                 }
                 else
@@ -154,20 +185,25 @@ namespace ProvisioningBuildTools.SelectForm
                     ShowBranchInfo(branchInfo);
                 }
             }
-
-            //ValidBtnOK();
         }
 
         private void ShowBranchInfo(BranchInfo branchInfo)
         {
             if (InvokeRequired)
             {
-                this.BeginInvoke(new Action<BranchInfo>(ShowBranchInfo), branchInfo);
+                this.Invoke(new Action<BranchInfo>(ShowBranchInfo), branchInfo);
             }
             else
             {
+                bool vaildBtnOk = this.txtTag.Text == $"{branchInfo.Tag}";
+
                 this.txtTag.Text = $"{branchInfo.Tag}";
                 this.txtLastModifiedTime.Text = $"{branchInfo.LastModifiedTime}";
+
+                if (vaildBtnOk)
+                {
+                    ValidBtnOK();
+                }
             }
         }
 
@@ -175,21 +211,57 @@ namespace ProvisioningBuildTools.SelectForm
         private void ValidBtnOK()
         {
             bool enable = false;
+            bool waitTag = false;
 
-            if (cmbProject.SelectedItem != null && cmbBranch.SelectedItem != null && cmdLocalBuildFolder.SelectedItem != null && !string.IsNullOrWhiteSpace(txtTag.Text))
+            if (cmbProject.SelectedItem != null && cmbBranch.SelectedItem != null && cmdLocalBuildFolder.SelectedItem != null)
             {
-                string project = cmbProject.SelectedItem.ToString();
-                string localFolder = cmdLocalBuildFolder.SelectedItem.ToString();
-
-                string localProject = (new DirectoryInfo(localFolder)).Parent.Name;
-
-                if (localProject == project || localProject.StartsWith($"{project}_"))
+                if (string.IsNullOrWhiteSpace(txtTag.Text))
                 {
-                    enable = true;
+                    TimeSpan timeSpan = DateTime.Now.Subtract((DateTime)input.GetBranchInfo(cmbBranch.SelectedItem.ToString(), true).LastModifiedTime);
+
+                    if (timeSpan > TimeSpan.FromDays(1))
+                    {
+                        LogNotify.WriteLog($"{cmbBranch.SelectedItem.ToString()} Lastmodified time {(DateTime)input.GetBranchInfo(cmbBranch.SelectedItem.ToString(), true).LastModifiedTime} over due 1 day, couldn't wait tag", true);
+
+                    }
+                    else
+                    {
+                        waitTag = true;
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(txtTag.Text) || waitTag)
+                {
+                    string project = cmbProject.SelectedItem?.ToString();
+                    string localFolder = cmdLocalBuildFolder.SelectedItem?.ToString();
+
+                    if (!string.IsNullOrEmpty(localFolder))
+                    {
+                        enable = true;
+                    }
                 }
             }
 
-            this.btnOK.Enabled = enable;
+            if (enable)
+            {
+                if (waitTag)
+                {
+                    this.btnWait.Enabled = true;
+                    this.btnOK.Enabled = false;
+                }
+                else
+                {
+                    this.btnOK.Enabled = true;
+                    this.btnWait.Enabled = false;
+                }
+
+                SetWaitState(waitTag);
+            }
+            else
+            {
+                this.btnOK.Enabled = false;
+                this.btnWait.Enabled = false;
+            }
         }
 
         private void cmdLocalBuildFolder_SelectedIndexChanged(object sender, EventArgs e)
@@ -200,6 +272,47 @@ namespace ProvisioningBuildTools.SelectForm
         private void txtTag_TextChanged(object sender, EventArgs e)
         {
             ValidBtnOK();
+        }
+
+        private void btnWait_Click(object sender, EventArgs e)
+        {
+            bool test = true;
+
+            if (test)
+            {
+                this.btnOK.Enabled = true;
+                btnOK.PerformClick();
+            }
+            else
+            {
+                lock (GetBranchInfoLock)
+                {
+                    GetBranchName = cmbBranch.SelectedItem?.ToString();
+                    GetBranchInfo = true;
+
+                    input.WaitAndGetTag(GetBranchName);
+                }
+            }
+        }
+
+        private bool GetWaitState()
+        {
+            bool waitState = false;
+
+            lock (WaitStateLock)
+            {
+                waitState = WaitState;
+            }
+
+            return waitState;
+        }
+
+        private void SetWaitState(bool waitState)
+        {
+            lock (WaitStateLock)
+            {
+                WaitState = waitState;
+            }
         }
     }
 }

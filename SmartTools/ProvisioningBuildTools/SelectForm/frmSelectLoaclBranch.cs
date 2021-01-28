@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace ProvisioningBuildTools.SelectForm
         public ILogNotify LogNotify { get; set; }
         public ICommandNotify CommandNotify { get; set; }
 
-        private SelectLocalBranchInput input = new SelectLocalBranchInput();
+        private SelectLocalBranchInput input;
 
         private static string m_latestSelectBranch;
 
@@ -35,15 +36,29 @@ namespace ProvisioningBuildTools.SelectForm
             LogNotify = logNotify;
             CommandNotify = commandNotify;
 
+            input = new SelectLocalBranchInput(logNotify);
+
             endInvoke = new Action(() => EnableRun(true));
             startInvoke = new Action(() => EnableRun(false));
         }
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            m_latestSelectBranch = cmbLocalBranches.SelectedItem.ToString();
-            m_SelectResult = new SelectLocalBranchOutput(cmbLocalBranches.SelectedItem.ToString());
-            this.DialogResult = DialogResult.OK;
+            m_latestSelectBranch = cmbLocalBranches.SelectedItem?.ToString();
+
+            LocalProjectInfo localProjectInfo = input.GetProjectInfo(cmbLocalBranches.SelectedItem?.ToString());
+
+            if (File.Exists(Path.Combine(localProjectInfo.SourceFolder, Command.REPOSSLN)))
+            {
+                m_SelectResult = new SelectLocalBranchOutput(localProjectInfo);
+                this.DialogResult = DialogResult.OK;
+            }
+            else
+            {
+                LogNotify.WriteLog($"{Command.REPOSSLN} not found in project path {localProjectInfo.SourceFolder}!!!", true);
+                this.DialogResult = DialogResult.Cancel;
+            }
+
             this.Close();
         }
 
@@ -77,14 +92,14 @@ namespace ProvisioningBuildTools.SelectForm
                 cmbLocalBranches.SelectedItem = m_latestSelectBranch;
             }
 
-            this.lblReposFolder.Text = Command.REPOSFOLDER;
+            //this.lblReposFolder.Text = Command.REPOSFOLDER;
         }
 
         private void EnableRun(bool enable = true)
         {
             if (this.InvokeRequired)
             {
-                this.BeginInvoke(new Action<bool>(EnableRun), enable);
+                this.Invoke(new Action<bool>(EnableRun), enable);
             }
             else
             {

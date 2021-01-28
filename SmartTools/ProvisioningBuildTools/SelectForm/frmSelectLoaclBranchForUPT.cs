@@ -22,7 +22,7 @@ namespace ProvisioningBuildTools.SelectForm
         public ILogNotify LogNotify { get; set; }
         public ICommandNotify CommandNotify { get; set; }
 
-        private SelectLocalBranchInput input = new SelectLocalBranchInput();
+        private SelectLocalBranchInput input;
 
         private static string m_latestSelectBranch;
 
@@ -36,17 +36,19 @@ namespace ProvisioningBuildTools.SelectForm
             LogNotify = logNotify;
             CommandNotify = commandNotify;
 
+            input = new SelectLocalBranchInput(logNotify);
+
             endInvoke = new Action(() => EnableRun(true));
             startInvoke = new Action(() => EnableRun(false));
         }
 
         private void btnOK_Click(object sender, EventArgs e)
         {
-            m_latestSelectBranch = cmbLocalBranches.SelectedItem.ToString();
-            Tuple<string, string, Action<string>> value = input.GetByProject(cmbLocalBranches.SelectedItem.ToString(), LogNotify);
-            m_SelectResult = new SelectLocalBranchOutput(cmbLocalBranches.SelectedItem.ToString(), value.Item1, value.Item2, value.Item3);
+            m_latestSelectBranch = cmbLocalBranches.SelectedItem?.ToString();
+            Tuple<string, string, Action<string>> value = input.GetByProject(cmbLocalBranches.SelectedItem?.ToString(), LogNotify);
+            m_SelectResult = new SelectLocalBranchOutput(input.GetProjectInfo(cmbLocalBranches.SelectedItem?.ToString()), value.Item1, value.Item2, value.Item3);
 
-            if (MessageBox.Show($"Please make sure your change of {value.Item1} is in {Path.Combine(Command.REPOSFOLDER, m_latestSelectBranch, value.Item2)}","Double confirm",MessageBoxButtons.YesNo,MessageBoxIcon.Warning,MessageBoxDefaultButton.Button2)==DialogResult.Yes)
+            if (MessageBox.Show($"Please make sure your change of {value.Item1} is in {value.Item2}", "Double confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
             {
                 this.DialogResult = DialogResult.OK;
                 this.Close();
@@ -83,14 +85,14 @@ namespace ProvisioningBuildTools.SelectForm
                 cmbLocalBranches.SelectedItem = m_latestSelectBranch;
             }
 
-            this.lblReposFolder.Text = Command.REPOSFOLDER;
+            //this.lblReposFolder.Text = Command.REPOSFOLDER;
         }
 
         private void EnableRun(bool enable = true)
         {
             if (this.InvokeRequired)
             {
-                this.BeginInvoke(new Action<bool>(EnableRun), enable);
+                this.Invoke(new Action<bool>(EnableRun), enable);
             }
             else
             {
@@ -101,7 +103,7 @@ namespace ProvisioningBuildTools.SelectForm
 
         private void cmbLocalBranches_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (input.GetByProject(cmbLocalBranches.SelectedItem.ToString(), LogNotify) != null)
+            if (input.GetByProject(cmbLocalBranches.SelectedItem?.ToString(), LogNotify) != null)
             {
                 this.btnOK.Enabled = true;
             }

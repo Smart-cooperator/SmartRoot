@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -55,6 +56,7 @@
     <Compile Include="frmProvisioningBuildTools.Designer.cs">
       <DependentUpon>frmProvisioningBuildTools.cs</DependentUpon>
     </Compile>
+    <Compile Include="ProjectSection.cs" />
     <Compile Include="SelectForm\frmSelectPackagesInfo.cs">
       <SubType>Form</SubType>
     </Compile>

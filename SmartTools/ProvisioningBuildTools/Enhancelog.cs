@@ -44,7 +44,13 @@ namespace ProvisioningBuildTools
         private void InternalStart()
         {
             bool tempFinished = false;
-            DateTime tempDateTime = DateTime.Now;            
+            bool logBufferFinished = false;
+            bool logNeedClear = false;
+            DateTime tempDateTime = DateTime.Now;
+            StringBuilder logBuffer = new StringBuilder();
+            Color lastColor = Color.White;
+            int logBufferLines = 0;
+            int logCurrentLines = 0;
 
             foreach (var item in logItemCollection.GetConsumingEnumerable())
             {
@@ -57,42 +63,89 @@ namespace ProvisioningBuildTools
                         tempFinished = false;
                     }
 
-                    Action action = () =>
-                    {
+                    string line = item.Context;
+                    Color color = item.Color;
 
-                        string line = item.Context;
-                        Color color = item.Color;
-
-                        line = $"{line}{Environment.NewLine}";                        
-
-                        if (richTextBox.Lines.Count() > 10000)
-                        {
-                            richTextBox.Clear();
-                        }
-
-                        int start = richTextBox.TextLength - 1;
-
-                        richTextBox.AppendText(line);
-
-                        int end = richTextBox.TextLength - 1;
-
-                        richTextBox.SelectionStart = start + 1;
-                        richTextBox.SelectionLength = end - start;
-                        richTextBox.SelectionColor = color;
-
-                        richTextBox.SelectionStart = richTextBox.TextLength;
-
-                        richTextBox.ScrollToCaret();
-
-                    };
-
-                    IAsyncResult asyncResult = richTextBox.BeginInvoke(action);
-
-                    asyncResult.AsyncWaitHandle.WaitOne();
+                    //line = $"{line}{Environment.NewLine}";
 
                     if (logItemCollection.Count == 0)
                     {
                         tempFinished = true;
+                    }
+
+                    if (logBufferLines + logCurrentLines > 10000)
+                    {
+                        logNeedClear = true;
+                    }
+
+                    if (!logNeedClear && (logBuffer.Length == 0 || lastColor == color))
+                    {
+                        logBuffer.AppendLine(line);
+                        logBufferLines++;
+                        lastColor = color;
+                    }
+                    else
+                    {
+                        logBufferFinished = true;
+                    }
+
+                    Action action = () =>
+                    {
+                        if (logNeedClear)
+                        {
+                            richTextBox.Clear();
+                            logBuffer.Clear();
+                            logBufferLines = 0;
+                            logCurrentLines = 0;
+                        }
+                        else
+                        {
+                            int start = richTextBox.TextLength - 1;
+
+                            richTextBox.AppendText(logBuffer.ToString());
+                            logCurrentLines = richTextBox.Lines.Count();
+                            logBuffer.Clear();
+                            logBufferLines = 0;
+
+                            int end = richTextBox.TextLength - 1;
+
+                            richTextBox.SelectionStart = start + 1;
+                            richTextBox.SelectionLength = end - start;
+                            richTextBox.SelectionColor = lastColor;
+
+                            richTextBox.SelectionStart = richTextBox.TextLength;
+
+                            richTextBox.ScrollToCaret();
+                        }
+                    };
+
+                    if (tempFinished || logBufferFinished || logNeedClear)
+                    {
+                        richTextBox.Invoke(action);
+
+                        if (tempFinished && logItemCollection.Count != 0)
+                        {
+                            tempFinished = false;
+                        }
+
+                        if (logBufferFinished)
+                        {
+                            logBuffer.AppendLine(line);
+                            logBufferLines++;
+                            lastColor = color;
+
+                            if (tempFinished)
+                            {
+                                richTextBox.Invoke(action);
+                            }
+
+                            logBufferFinished = false;
+                        }
+
+                        if (logNeedClear)
+                        {
+                            logNeedClear = false;
+                        }
                     }
 
                     if (DateTime.Now.Subtract(tempDateTime).TotalSeconds >= 3)

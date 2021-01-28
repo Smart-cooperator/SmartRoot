@@ -43,78 +43,26 @@ namespace ProvisioningBuildTools
 
         public void WriteOutPut(int processId, string outputLine)
         {
-            //if (!this.InvokeRequired)
-            //{
-            //    //richTextBox1.AppendText($"ProcessId {processId}:{outputLine}{Environment.NewLine}");
-            //    // richTextBox1.AppendText($"{outputLine}{Environment.NewLine}");
-            //    AppenLine(outputLine);
-            //}
-            //else
-            //{
-            //    this.BeginInvoke(new Action<int, string>(WriteOutPut), processId, outputLine);
-            //}
             Log.AppenLine(outputLine);
         }
 
         public void WriteErrorOutPut(int processId, string errorLine)
         {
-            //if (!this.InvokeRequired)
-            //{
-            //    //richTextBox1.AppendText($"ProcessId {processId}:{errorLine}{Environment.NewLine}");
-            //    //richTextBox1.AppendText($"{errorLine}{Environment.NewLine}");
-            //    AppenLine(errorLine, true);
-            //}
-            //else
-            //{
-            //    this.BeginInvoke(new Action<int, string>(WriteErrorOutPut), processId, errorLine);
-            //}
-
             Log.AppenLine(errorLine, true);
         }
 
         public void Exit(int processId, int exitCode)
         {
-            //if (!this.InvokeRequired)
-            //{
-            //    //richTextBox1.AppendText($"ProcessId {processId}:ExitCode {exitCode}{Environment.NewLine}");
-            //    //richTextBox1.AppendText($"ExitCode {exitCode}{Environment.NewLine}");
-            //    AppenLine($"ExitCode {exitCode}");
-            //}
-            //else
-            //{
-            //    this.BeginInvoke(new Action<int, int>(Exit), processId, exitCode);
-            //}
-
             Log.AppenLine($"ExitCode {exitCode}");
         }
 
         public void WriteLog(string logLine, bool hasError = false)
         {
-            //if (!this.InvokeRequired)
-            //{
-            //    //richTextBox1.AppendText($"{logLine}{Environment.NewLine}");
-            //    AppenLine(logLine, !hasError ? Color.LightGreen : Color.Red);
-            //}
-            //else
-            //{
-            //    this.BeginInvoke(new Action<string, bool>(WriteLog), logLine, hasError);
-            //}
-
             Log.AppenLine(logLine, !hasError ? Color.LightGreen : Color.Red);
         }
 
         public void WriteLog(Exception ex)
         {
-            //if (!this.InvokeRequired)
-            //{
-            //    //richTextBox1.AppendText($"{logLine}{Environment.NewLine}");
-            //    AppenLine($"throw exception:{ex.Message}", true);
-            //}
-            //else
-            //{
-            //    this.BeginInvoke(new Action<Exception>(WriteLog), ex);
-            //}
-
             Log.AppenLine($"throw exception:{ex.Message}", true);
         }
 
@@ -219,7 +167,6 @@ namespace ProvisioningBuildTools
             }
             catch (Exception ex)
             {
-                //this.BeginInvoke(new Action<Exception>(WriteLog), ex);
                 WriteLog(ex);
                 this.Enabled = false;
             }
@@ -243,7 +190,7 @@ namespace ProvisioningBuildTools
             try
             {
 
-                if (Enum.TryParse<ExecEnum>(cmbExecItems.SelectedItem.ToString(), out execEnum))
+                if (Enum.TryParse<ExecEnum>(cmbExecItems.SelectedItem?.ToString(), out execEnum))
                 {
                     if (!backGroundCommand.IsBusy)
                     {
@@ -270,6 +217,8 @@ namespace ProvisioningBuildTools
                                 break;
                         }
 
+                        Directory.SetCurrentDirectory(Command.REPOSFOLDER);
+
                         if (selectFrom.ShowDialog(this) == DialogResult.OK)
                         {
                             switch (execEnum)
@@ -278,24 +227,24 @@ namespace ProvisioningBuildTools
                                     selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
                                     runAct = new List<Func<CommandResult>>()
                                     {
-                                        new Func<CommandResult>(() => Command.OpenReposSln(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        new Func<CommandResult>(() => Command.OpenReposSln(selectLocalBranchOutput.SelectedLocalProjectInfo.SourceFolder, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                     };
                                     break;
                                 case ExecEnum.BuildLocalBranch:
                                     selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
                                     runAct = new List<Func<CommandResult>>()
                                     {
-                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
-                                        new Func<CommandResult>(() => Command.CreatePackage(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalProjectInfo.SourceFolder, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.CreatePackage(selectLocalBranchOutput.SelectedLocalProjectInfo.SourceFolder, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                     };
                                     break;
                                 case ExecEnum.UpdateExternalDrops:
                                     selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
                                     runAct = new List<Func<CommandResult>>()
                                     {
-                                        new Func<CommandResult>(() => Command.UpdateExternalDrops(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
-                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
-                                        new Func<CommandResult>(() => Command.CreatePackage(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        new Func<CommandResult>(() => Command.UpdateExternalDrops(selectLocalBranchOutput.SelectedLocalProjectInfo.SourceFolder, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalProjectInfo.SourceFolder, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.CreatePackage(selectLocalBranchOutput.SelectedLocalProjectInfo.SourceFolder, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                         };
                                     break;
                                 case ExecEnum.DropRemoteBranch:
@@ -309,7 +258,7 @@ namespace ProvisioningBuildTools
                                     selectRemoteBranchOutputPostBuild = ((ISelect<SelectRemoteBranchOutputPostBuild>)selectFrom).SelectResult;
                                     runAct = new List<Func<CommandResult>>()
                                     {
-                                        new Func<CommandResult>(() => Command.PostBuild(selectRemoteBranchOutputPostBuild.LocalBuildScriptsFolder,new Tuple<string, string, Version>(selectRemoteBranchOutputPostBuild.SelectProject,selectRemoteBranchOutputPostBuild.SelectRemoteBranch,selectRemoteBranchOutputPostBuild.Tag), this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        new Func<CommandResult>(() => Command.PostBuild(selectRemoteBranchOutputPostBuild.LocalBuildScriptsFolder,new Tuple<string, string, Version, Func<ICommandNotify, ILogNotify, CancellationTokenSource, CancellationTokenSource, Version>>(selectRemoteBranchOutputPostBuild.SelectProject,selectRemoteBranchOutputPostBuild.SelectRemoteBranch,selectRemoteBranchOutputPostBuild.Tag,selectRemoteBranchOutputPostBuild.WaitGetTag), this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                         };
                                     break;
                                 case ExecEnum.InstallSurfacePackage:
@@ -323,10 +272,10 @@ namespace ProvisioningBuildTools
                                     selectLocalBranchOutput = ((ISelect<SelectLocalBranchOutput>)selectFrom).SelectResult;
                                     runAct = new List<Func<CommandResult>>()
                                     {
-                                        new Func<CommandResult>(() => Command.UploadProvisioningTools2Nuget(selectLocalBranchOutput.SelectedLocalBranch,selectLocalBranchOutput.ProvisioningToolsPackageId,selectLocalBranchOutput.ProvisioningToolsPackageDestination,selectLocalBranchOutput.UpdateNewVersionAction, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
-                                        new Func<CommandResult>(() => Command.UpdateExternalDrops(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
-                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
-                                        new Func<CommandResult>(() => Command.CreatePackage(selectLocalBranchOutput.SelectedLocalBranch, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
+                                        new Func<CommandResult>(() => Command.UploadProvisioningTools2Nuget(selectLocalBranchOutput.SelectedLocalProjectInfo.SourceFolder,selectLocalBranchOutput.SelectedLocalProjectInfo.BuildScriptsFolder,selectLocalBranchOutput.ProvisioningToolsPackageId,selectLocalBranchOutput.ProvisioningToolsPackageDestination,selectLocalBranchOutput.UpdateNewVersionAction, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.UpdateExternalDrops(selectLocalBranchOutput.SelectedLocalProjectInfo.SourceFolder, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.RebulidAll(selectLocalBranchOutput.SelectedLocalProjectInfo.SourceFolder, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.CreatePackage(selectLocalBranchOutput.SelectedLocalProjectInfo.SourceFolder, this, this, cancellationTokenSource,cancellationTokenSourceForKill))
                                         };
                                     break;
                                 default:
@@ -335,12 +284,18 @@ namespace ProvisioningBuildTools
 
                             backGroundCommand.AsyncRun(runAct.ToArray(), startInvoke, endInvoke, cancellationTokenSource, this, cancellationTokenSourceForKill);
                         }
+                        else
+                        {
+                            this.TopMost = true;
+                            this.Activate();
+                            this.TopMost = false;
+                            this.btnClear.Enabled = true;
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                // this.BeginInvoke(new Action<Exception>(WriteLog), ex);
                 WriteLog(ex);
             }
         }
@@ -357,7 +312,6 @@ namespace ProvisioningBuildTools
             }
             catch (Exception ex)
             {
-                //this.BeginInvoke(new Action<Exception>(WriteLog), ex);
                 WriteLog(ex);
             }
         }
@@ -374,7 +328,6 @@ namespace ProvisioningBuildTools
             }
             catch (Exception ex)
             {
-                //this.BeginInvoke(new Action<Exception>(WriteLog), ex);
                 WriteLog(ex);
             }
         }
@@ -382,7 +335,7 @@ namespace ProvisioningBuildTools
         {
             if (this.InvokeRequired)
             {
-                this.BeginInvoke(new Action<bool>(EnableRun), enable);
+                this.Invoke(new Action<bool>(EnableRun), enable);
             }
             else
             {
@@ -395,6 +348,7 @@ namespace ProvisioningBuildTools
                 if (this.TopMost)
                 {
                     this.Activate();
+                    this.TopMost = false;
                 }
             }
 
@@ -406,12 +360,22 @@ namespace ProvisioningBuildTools
             {
                 e.Cancel = true;
             }
+
+            if (!e.Cancel)
+            {
+                Log.Close();
+            }
         }
 
         private void frmProvisioningBuildTools_Activated(object sender, EventArgs e)
         {
             this.Invalidate();
             this.TopMost = false;
+        }
+
+        private void frmProvisioningBuildTools_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            Environment.Exit(0);
         }
     }
 }

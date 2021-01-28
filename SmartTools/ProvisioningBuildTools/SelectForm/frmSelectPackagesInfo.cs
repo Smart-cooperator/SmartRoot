@@ -112,7 +112,7 @@ namespace ProvisioningBuildTools.SelectForm
         {
             if (this.InvokeRequired)
             {
-                this.BeginInvoke(new Action<bool>(EnableRun), enable);
+                this.Invoke(new Action<bool>(EnableRun), enable);
             }
             else
             {

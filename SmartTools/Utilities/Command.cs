@@ -10,41 +10,34 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.IO.Compression;
 using System.Xml;
+using System.Configuration;
 
 namespace Utilities
 {
     public class Command
     {
         public const string CMDPATH = @"cmd.exe";
-        //public const string CMDTITLE = @"title Command Prompt";
-        public const string EWDKPATH = @"C:\17134.1.3";
-        public const string EWDKCMD = @"LaunchBuildEnv.cmd";
+        public static readonly string EWDKPATH = @"C:\17134.1.3";
+        public static readonly string EWDKCMD = @"LaunchBuildEnv.cmd";
         public const string CMD = "cmd";
         public const string NUGETPACKAGECONFIGCMD = @"Nuget Install {0} -ConfigFile Nuget.config -OutputDirectory .\packages";
-        // public const string MAINWINDOWSTIELE = @"Administrator:  ""Vs2017 & WDK Build Env WDKContentRoot: C:\17134.1.3\Program Files\Windows Kits\10\""";
         public static readonly string REPOSFOLDER = $@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\source\repos\";
-        public static readonly string BUILDSCRIPTSFOLDER = Path.Combine($@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\source\repos\", "{0}", "BuildScripts");
-        public const string OPENREPOSSLN = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe"" Provisioning.sln";
-        public const string REPOSSLN = @"Provisioning.sln";
+        public const string BUILDSCRIPTS = "BuildScripts";
+        public static readonly string OPENREPOSSLN = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe"" Provisioning.sln";
+        public static readonly string REPOSSLN = @"Provisioning.sln";
         public const string PSOTBUILDCMD = @"PostBuildPackageGeneration.cmd";
         public const string PSOTBUILDPS1 = @"PostBuildPackageGeneration.ps1";
-        //public const string BUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x86""";
-        //public const string BUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /Build ""Debug|x64""";
-        public const string REBUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x86""";
-        //public const string REBUILDX64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x64""";
-        public const string REBUILDPLATFORM64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|{0}""";
+        public static readonly string REBUILDX86 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|x86""";
+        public static readonly string REBUILDPLATFORM64 = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv"" Provisioning.sln /ReBuild ""Debug|{0}""";
         public const string DEBUG = @"Debug";
         public const string EXTERNALDROPS = @"ExternalDrops";
         public const string DEBUGX86BIN = @"Debug\x86\bin";
-        //public const string DEBUGX64BIN = @"Debug\x64\bin";
         public const string DEBUGPLATFORM64BIN = @"Debug\{0}\bin";
         public const string CREATEPACKAGE = @"CreatePackage.cmd Debug";
         public const string CREATEPACKAGECMD = @"CreatePackage.cmd";
         public const string INITCMD = "init.cmd";
         public const string UpdateExternalDropsCMD = "UpdateExternalDrops.cmd";
-        //public const string LOGSTASTR = "++++++++++++++++++++++++++++++++++++++++";
-        //public const string LOGENDSTR = "----------------------------------------";
-        public const string CLONEREPOS = @"git clone https://dev.azure.com/MSFTDEVICES/Vulcan/_git/DeviceProvisioning {0}";
+        public static readonly string CLONEREPOS = @"git clone https://dev.azure.com/MSFTDEVICES/Vulcan/_git/DeviceProvisioning {0}";
         public const string LISTREMOTEBRANCH = "git branch -r";
         public const string GETBRANCHLOG = "git log --decorate=full {0}";
         public const string CHECKOUTBRANCH = "git checkout {0}";
@@ -54,10 +47,9 @@ namespace Utilities
         public static readonly string CREATEPERSONALBRANCH = $"git checkout -b personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
         public static readonly string PERSONAL = $"personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
         public const string PRODUCTBRANCHFILTER = "origin/product/{0}/";
-        public const string DESMOBUILDFOLDER = @"\\desmo\release\Vulcan\CI_DeviceProvisioning\refs\heads\";
+        public static readonly string DESMOBUILDFOLDER = @"\\desmo\release\Vulcan\CI_DeviceProvisioning\refs\heads\";
         public const string RSX = @"RS*";
         public const string RSXX86DEBUG = @"Drop_RS*_x86_Debug";
-        //public const string RS4X64DEBUG = @"Drop_RS4_x64_Debug";
         public const string RSXPLATFORM64DEBUG = @"Drop_RS*_*64_Debug";
         public const string PROVISIONINGPACKAGE = @"ProvisioningPackage";
         public const string POSTBUILDPACKAGENAME = @"Provisioning_{0}_Debug";
@@ -73,12 +65,64 @@ namespace Utilities
 
         static Command()
         {
+            string eWDKPath = ConfigurationManager.AppSettings["eWDKPath"];
+            string devenvExePath = ConfigurationManager.AppSettings["devenvExePath"];
+            string devenvComPath = ConfigurationManager.AppSettings["devenvComPath"];
+            string provisioningSolution = ConfigurationManager.AppSettings["provisioningSolution"];
+            string provisioningRepository = ConfigurationManager.AppSettings["provisioningRepository"];
+            string desmoBuildFolder = ConfigurationManager.AppSettings["desmoBuildFolder"];
+            string defaultSourceFolder = ConfigurationManager.AppSettings["defaultSourceFolder"];
+            string arg0 = "{0}";
 
+            if (!string.IsNullOrEmpty(eWDKPath) && File.Exists(eWDKPath))
+            {
+                EWDKPATH = Path.GetDirectoryName(eWDKPath);
+                EWDKCMD = Path.GetFileName(eWDKPath);
+            }
+
+            if (!string.IsNullOrEmpty(provisioningSolution))
+            {
+                REPOSSLN = provisioningSolution;
+            }
+
+            if (!string.IsNullOrEmpty(devenvExePath) && File.Exists(devenvExePath) && !string.IsNullOrEmpty(provisioningSolution))
+            {
+                OPENREPOSSLN = $@"""{devenvExePath}"" {provisioningSolution}";
+            }
+
+            if (!string.IsNullOrEmpty(devenvComPath) && File.Exists(devenvComPath) && !string.IsNullOrEmpty(provisioningSolution))
+            {
+                REBUILDX86 = $@"""{devenvComPath}"" {provisioningSolution} /ReBuild ""Debug|x86""";
+                REBUILDPLATFORM64 = $@"""{devenvComPath}"" {provisioningSolution} /ReBuild ""Debug|{arg0}""";
+            }
+
+            if (!string.IsNullOrEmpty(provisioningRepository))
+            {
+                CLONEREPOS = $@"git clone {provisioningRepository} {arg0}";
+            }
+
+            if (!string.IsNullOrEmpty(desmoBuildFolder))
+            {
+                DESMOBUILDFOLDER = desmoBuildFolder;
+            }
+
+            if (!string.IsNullOrEmpty(defaultSourceFolder))
+            {
+                REPOSFOLDER = defaultSourceFolder.Replace("{UserProfile}", new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name);
+                Directory.SetCurrentDirectory(REPOSFOLDER);
+            }
         }
 
 
         public static int Run(string workDirectory, string cmd, string[] input, out int exitCode, out string standOutput, out string errorOutput, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
+            string exitFlag = null;
+
+            if (input != null && input.Length > 0 && input.Contains("exit") && !string.IsNullOrEmpty(exitFlag = input.FirstOrDefault(str => str.Trim().StartsWith("cd"))))
+            {
+                exitFlag = $"{exitFlag.Trim().Substring(2).Trim()}>exit";
+            }
+
             if (cancellationTokenSource != null && cancellationTokenSource.Token != CancellationToken.None)
             {
                 cancellationTokenSource.Token.ThrowIfCancellationRequested();
@@ -148,10 +192,14 @@ namespace Utilities
                             return;
                         }
 
-                        if (e.Data.EndsWith(">exit"))
+                        if (!string.IsNullOrEmpty(exitFlag))
                         {
-                            exit = true;
+                            if (e.Data.Equals(exitFlag))
+                            {
+                                exit = true;
+                            }
                         }
+
 
                         if (cmd != null && cmd.Contains(string.Format(GETBRANCHLOG, string.Empty)) && tempStandOutput.ToString().Contains("commit") && tempStandOutput.ToString().Contains("Date:"))
                         {
@@ -319,97 +367,93 @@ namespace Utilities
             return commandResult;
         }
 
-        public static CommandResult OpenReposSln(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult OpenReposSln(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
+            string slnPath = Path.Combine(projectPath, REPOSSLN);
+
+            if (!File.Exists(slnPath))
             {
-                throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+                throw new FileNotFoundException($"{REPOSSLN} not found", slnPath);
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), OPENREPOSSLN, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
+            return Run(projectPath, OPENREPOSSLN, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
         }
 
-        public static CommandResult NugetPackageConfig(string projectName, string packageConfig, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult NugetPackageConfig(string projectPath, string packageConfig, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
+            string slnPath = Path.Combine(projectPath, REPOSSLN);
+
+            if (!File.Exists(slnPath))
             {
-                throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+                throw new FileNotFoundException($"{REPOSSLN} not found", slnPath);
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), string.Format(NUGETPACKAGECONFIGCMD, packageConfig), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(projectPath, string.Format(NUGETPACKAGECONFIGCMD, packageConfig), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
-        public static CommandResult RebulidX86(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult RebulidX86(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
+            string slnPath = Path.Combine(projectPath, REPOSSLN);
+
+            if (!File.Exists(slnPath))
             {
-                throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+                throw new FileNotFoundException($"{REPOSSLN} not found", slnPath);
             }
 
-            if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN)))
+            if (Directory.Exists(Path.Combine(projectPath, DEBUGX86BIN)))
             {
-                Directory.Delete(Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN), true);
+                Directory.Delete(Path.Combine(projectPath, DEBUGX86BIN), true);
             }
 
-            if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, GENERATEDFILESFOLDER)))
+            if (Directory.Exists(Path.Combine(projectPath, GENERATEDFILESFOLDER)))
             {
-                Directory.Delete(Path.Combine(REPOSFOLDER, projectName, GENERATEDFILESFOLDER), true);
+                Directory.Delete(Path.Combine(projectPath, GENERATEDFILESFOLDER), true);
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), REBUILDX86, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
+            return Run(projectPath, REBUILDX86, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
         }
 
-        //public static CommandResult RebulidX64(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
-        //{
-        //    if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
-        //    {
-        //        throw new FileNotFoundException($"{ REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
-        //    }
 
-        //    if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)))
-        //    {
-        //        Directory.Delete(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN), true);
-        //    }
-
-        //    return Run(Path.Combine(REPOSFOLDER, projectName), REBUILDX64, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
-        //}
-
-        public static CommandResult RebulidPlatform64(string projectName, string platform64, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult RebulidPlatform64(string projectPath, string platform64, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
+            string slnPath = Path.Combine(projectPath, REPOSSLN);
+
+            if (!File.Exists(slnPath))
             {
-                throw new FileNotFoundException($"{ REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+                throw new FileNotFoundException($"{REPOSSLN} not found", slnPath);
             }
 
-            string platform64DebugBinFolder = string.Format(Path.Combine(REPOSFOLDER, projectName, DEBUGPLATFORM64BIN), platform64);
+            string platform64DebugBinFolder = string.Format(Path.Combine(projectPath, DEBUGPLATFORM64BIN), platform64);
 
             if (Directory.Exists(platform64DebugBinFolder))
             {
                 Directory.Delete(platform64DebugBinFolder, true);
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), string.Format(REBUILDPLATFORM64, platform64), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
+            return Run(projectPath, string.Format(REBUILDPLATFORM64, platform64), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill, true);
         }
 
-        public static CommandResult RebulidAll(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult RebulidAll(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
             CommandResult commandResult;
 
-            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, REPOSSLN)))
+            string slnPath = Path.Combine(projectPath, REPOSSLN);
+
+            if (!File.Exists(slnPath))
             {
-                throw new FileNotFoundException($"{REPOSSLN} not found", Path.Combine(REPOSFOLDER, projectName, REPOSSLN));
+                throw new FileNotFoundException($"{REPOSSLN} not found", slnPath);
             }
 
-            if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUG)))
+            if (Directory.Exists(Path.Combine(projectPath, DEBUG)))
             {
-                Directory.Delete(Path.Combine(REPOSFOLDER, projectName, DEBUG), true);
+                Directory.Delete(Path.Combine(projectPath, DEBUG), true);
             }
 
-            commandResult = RebulidX86(projectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            commandResult = RebulidX86(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             if (commandResult.ExitCode == 0)
             {
-                string platform64 = GetPlatform64(projectName);
+                string platform64 = GetPlatform64(projectPath);
 
                 if (string.IsNullOrEmpty(platform64))
                 {
@@ -417,7 +461,7 @@ namespace Utilities
                 }
                 else
                 {
-                    return RebulidPlatform64(projectName, platform64, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                    return RebulidPlatform64(projectPath, platform64, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
                 }
             }
             else
@@ -426,12 +470,14 @@ namespace Utilities
             }
         }
 
-        private static string GetPlatform64(string projectName)
+        private static string GetPlatform64(string projectPath)
         {
-            string vcProject = Directory.EnumerateFiles(Path.Combine(REPOSFOLDER, projectName, "Source"), "*.vcxproj", SearchOption.AllDirectories).FirstOrDefault();
+            //string vcProject = Directory.EnumerateFiles(Path.Combine(projectPath, "Source"), "*.vcxproj", SearchOption.AllDirectories).FirstOrDefault();
+            string vcProject = Path.Combine(projectPath, CREATEPACKAGECMD);
             if (File.Exists(vcProject))
             {
-                string pattern = @"<Platform>(?<Platform>\S+?)</Platform>";
+                //string pattern = @"<Platform>(?<Platform>\S+?)</Platform>";
+                string pattern = @"\\(?<Platform>[^\\\s]+?64)\\";
                 Regex regex = new Regex(pattern);
 
                 Match match = regex.Match(File.ReadAllText(vcProject));
@@ -451,62 +497,52 @@ namespace Utilities
             }
         }
 
-        public static CommandResult CreatePackage(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult CreatePackage(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, CREATEPACKAGECMD)))
+            if (!File.Exists(Path.Combine(projectPath, CREATEPACKAGECMD)))
             {
-                throw new FileNotFoundException($"{CREATEPACKAGECMD} not found", Path.Combine(REPOSFOLDER, projectName, CREATEPACKAGECMD));
+                throw new FileNotFoundException($"{CREATEPACKAGECMD} not found", Path.Combine(projectPath, CREATEPACKAGECMD));
             }
 
-            //if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)) || Directory.GetFiles(Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN)).Length == 0)
-            //{
-            //    throw new FileNotFoundException($"{DEBUGX64BIN} not found", Path.Combine(REPOSFOLDER, projectName, DEBUGX64BIN));
-            //}
-
-            string platform64 = GetPlatform64(projectName);
-            string platform64DebugBinFolder = string.Format(Path.Combine(REPOSFOLDER, projectName, DEBUGPLATFORM64BIN), platform64);
+            string platform64 = GetPlatform64(projectPath);
+            string platform64DebugBinFolder = string.Format(Path.Combine(projectPath, DEBUGPLATFORM64BIN), platform64);
 
             if (!Directory.Exists(platform64DebugBinFolder) || Directory.GetFiles(platform64DebugBinFolder).Length == 0)
             {
                 throw new FileNotFoundException($"{string.Format(DEBUGPLATFORM64BIN, platform64)} not found", platform64DebugBinFolder);
             }
 
-            if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN)) || Directory.GetFiles(Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN)).Length == 0)
+            if (!Directory.Exists(Path.Combine(projectPath, DEBUGX86BIN)) || Directory.GetFiles(Path.Combine(projectPath, DEBUGX86BIN)).Length == 0)
             {
-                throw new FileNotFoundException($"{DEBUGX86BIN} not found", Path.Combine(REPOSFOLDER, projectName, DEBUGX86BIN));
+                throw new FileNotFoundException($"{DEBUGX86BIN} not found", Path.Combine(projectPath, DEBUGX86BIN));
             }
 
-            if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, PROVISIONINGPACKAGE)))
+            if (Directory.Exists(Path.Combine(projectPath, PROVISIONINGPACKAGE)))
             {
-                Directory.Delete(Path.Combine(REPOSFOLDER, projectName, PROVISIONINGPACKAGE), true);
+                Directory.Delete(Path.Combine(projectPath, PROVISIONINGPACKAGE), true);
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), CREATEPACKAGE, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(projectPath, CREATEPACKAGE, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
-        public static CommandResult Init(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult Init(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, INITCMD)))
+            if (!File.Exists(Path.Combine(projectPath, INITCMD)))
             {
-                throw new FileNotFoundException($"{INITCMD} not found", Path.Combine(REPOSFOLDER, projectName, INITCMD));
+                throw new FileNotFoundException($"{INITCMD} not found", Path.Combine(projectPath, INITCMD));
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), INITCMD, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(projectPath, INITCMD, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
-        public static CommandResult UpdateExternalDrops(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult UpdateExternalDrops(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!File.Exists(Path.Combine(REPOSFOLDER, projectName, UpdateExternalDropsCMD)))
+            if (!File.Exists(Path.Combine(projectPath, UpdateExternalDropsCMD)))
             {
-                throw new FileNotFoundException($"{UpdateExternalDropsCMD} not found", Path.Combine(REPOSFOLDER, projectName, UpdateExternalDropsCMD));
+                throw new FileNotFoundException($"{UpdateExternalDropsCMD} not found", Path.Combine(projectPath, UpdateExternalDropsCMD));
             }
 
-            //if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName, EXTERNALDROPS)))
-            //{
-            //    Directory.Delete(Path.Combine(REPOSFOLDER, projectName, EXTERNALDROPS), true);
-            //}
-
-            string packageConfig = Path.Combine(REPOSFOLDER, projectName, PACKAGESCONFIG);
+            string packageConfig = Path.Combine(projectPath, PACKAGESCONFIG);
 
             XmlDocument packageDoc = new XmlDocument();
             packageDoc.Load(packageConfig);
@@ -535,7 +571,7 @@ namespace Utilities
                                     version = new Version(version.Major, version.Minor, version.Build, 0);
                                 }
 
-                                destination = Path.Combine(REPOSFOLDER, projectName, package.GetAttribute("destination"));
+                                destination = Path.Combine(projectPath, package.GetAttribute("destination"));
 
                                 string versionStr = version.Revision == 0 ? version.ToString(3) : version.ToString(4);
 
@@ -548,7 +584,7 @@ namespace Utilities
                             }
                 );
 
-            CommandResult commandResult = Run(Path.Combine(REPOSFOLDER, projectName), UpdateExternalDropsCMD, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            CommandResult commandResult = Run(projectPath, UpdateExternalDropsCMD, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             if (!string.IsNullOrEmpty(commandResult.ErrorOutput))
             {
@@ -570,84 +606,84 @@ namespace Utilities
             return commandResult;
         }
 
-        public static CommandResult GitColne(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult GitColne(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) && (Directory.GetFiles(Path.Combine(REPOSFOLDER, projectName)).Length != 0 || Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Length != 0))
+            if (Directory.Exists(projectPath) && (Directory.GetFiles(projectPath).Length != 0 || Directory.GetDirectories(projectPath).Length != 0))
             {
-                throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an empty folder");
+                throw new Exception($"{projectPath} is not an empty folder");
             }
 
-            return Run(REPOSFOLDER, string.Format(CLONEREPOS, projectName), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(Path.GetDirectoryName(projectPath), string.Format(CLONEREPOS, new DirectoryInfo(projectPath).Name), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
-        public static CommandResult GitRemoteBranchList(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult GitRemoteBranchList(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
+            if (!Directory.Exists(projectPath) || !Directory.GetDirectories(projectPath).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
-                throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
+                throw new Exception($"{projectPath} is not an repos folder");
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), LISTREMOTEBRANCH, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(projectPath, LISTREMOTEBRANCH, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
-        public static CommandResult GitLog(string projectName, string branchName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult GitLog(string projectPath, string branchName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
+            if (!Directory.Exists(projectPath) || !Directory.GetDirectories(projectPath).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
-                throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
+                throw new Exception($"{projectPath} is not an repos folder");
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), string.Format(GETBRANCHLOG, branchName), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(projectPath, string.Format(GETBRANCHLOG, branchName), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
-        public static CommandResult GitCheckOut(string projectName, string branchName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult GitCheckOut(string projectPath, string branchName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
+            if (!Directory.Exists(projectPath) || !Directory.GetDirectories(projectPath).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
-                throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
+                throw new Exception($"{projectPath} is not an repos folder");
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), string.Format(CHECKOUTBRANCH, branchName), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(projectPath, string.Format(CHECKOUTBRANCH, branchName), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
-        public static CommandResult GitFetch(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult GitFetch(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
+            if (!Directory.Exists(projectPath) || !Directory.GetDirectories(projectPath).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
-                throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
+                throw new Exception($"{projectPath} is not an repos folder");
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), FETCHBRANCH, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(projectPath, FETCHBRANCH, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
-        public static CommandResult GitFetchAll(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult GitFetchAll(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
+            if (!Directory.Exists(projectPath) || !Directory.GetDirectories(projectPath).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
-                throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
+                throw new Exception($"{projectPath} is not an repos folder");
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), FETCHALL, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(projectPath, FETCHALL, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
-        public static CommandResult GitPull(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult GitPull(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
+            if (!Directory.Exists(projectPath) || !Directory.GetDirectories(projectPath).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
-                throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
+                throw new Exception($"{projectPath} is not an repos folder");
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), PULLBRANCH, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(projectPath, PULLBRANCH, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
-        public static CommandResult GitCreatePersonalBranch(string projectName, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult GitCreatePersonalBranch(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            if (!Directory.Exists(Path.Combine(REPOSFOLDER, projectName)) || !Directory.GetDirectories(Path.Combine(REPOSFOLDER, projectName)).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
+            if (!Directory.Exists(projectPath) || !Directory.GetDirectories(projectPath).Select(dir => (new DirectoryInfo(dir)).Name).Contains(".git"))
             {
-                throw new Exception($"{Path.Combine(REPOSFOLDER, projectName)} is not an repos folder");
+                throw new Exception($"{projectPath} is not an repos folder");
             }
 
-            return Run(Path.Combine(REPOSFOLDER, projectName), string.Format(CREATEPERSONALBRANCH, projectName), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            return Run(projectPath, string.Format(CREATEPERSONALBRANCH, new DirectoryInfo(projectPath).Name), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
         }
 
         public static CommandResult CheckOutLatestBranch(string projectName, string newBranchName = null, Tuple<string, DateTime?, Version> specificBranch = null, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
@@ -656,30 +692,30 @@ namespace Utilities
             //WriteFuctionName2Log(MethodBase.GetCurrentMethod().Name, logNotify);
 
 
-            string newProjectName = string.IsNullOrWhiteSpace(newBranchName) ? projectName : $"{projectName}_{newBranchName}";
+            string projectPath = Path.Combine(REPOSFOLDER, string.IsNullOrWhiteSpace(newBranchName) ? projectName : $"{projectName}_{newBranchName}");
 
             CommandResult commandResult;
 
-            commandResult = GitColne(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            commandResult = GitColne(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             if (commandResult.ExitCode != 0)
             {
-                throw new Exception(string.Format($"Project:{newProjectName} Action:{CLONEREPOS} failed!!! Error:{commandResult.ErrorOutput}", newProjectName));
+                throw new Exception(string.Format($"Project:{projectPath} Action:{CLONEREPOS} failed!!! Error:{commandResult.ErrorOutput}", projectPath));
             }
 
 
-            commandResult = GitFetchAll(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            commandResult = GitFetchAll(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             if (commandResult.ExitCode != 0)
             {
-                throw new Exception($"Project:{newProjectName} Action:{FETCHALL} failed!!! Error:{commandResult.ErrorOutput}");
+                throw new Exception($"Project:{projectPath} Action:{FETCHALL} failed!!! Error:{commandResult.ErrorOutput}");
             }
 
-            commandResult = GitRemoteBranchList(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            commandResult = GitRemoteBranchList(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             if (commandResult.ExitCode != 0)
             {
-                throw new Exception($"Project:{newProjectName} Action:{LISTREMOTEBRANCH} failed!!! Error:{commandResult.ErrorOutput}");
+                throw new Exception($"Project:{projectPath} Action:{LISTREMOTEBRANCH} failed!!! Error:{commandResult.ErrorOutput}");
             }
 
             string[] branches = commandResult.StandOutput.Split(Environment.NewLine.ToCharArray()).Where(branch => branch.Contains(string.Format(PRODUCTBRANCHFILTER, projectName))).Select(str => str.Trim()).ToArray();
@@ -696,11 +732,11 @@ namespace Utilities
             {
                 for (int i = 0; i < branches.Length; i++)
                 {
-                    commandResult = GitLog(newProjectName, branches[i], commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                    commandResult = GitLog(projectPath, branches[i], commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                     if (commandResult.ExitCode != 0)
                     {
-                        throw new Exception(string.Format($"Project:{newProjectName} Action:{GETBRANCHLOG} failed!!! Error:{commandResult.ErrorOutput}", branches[i]));
+                        throw new Exception(string.Format($"Project:{projectPath} Action:{GETBRANCHLOG} failed!!! Error:{commandResult.ErrorOutput}", branches[i]));
                     }
                     string tempBranchName = branches[i].Replace("origin/", string.Empty).Replace("/", "_").Trim();
 
@@ -758,87 +794,87 @@ namespace Utilities
 
             if (lastestBranch.Item1 != null)
             {
-                commandResult = GitCheckOut(newProjectName, lastestBranch.Item1, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = GitCheckOut(projectPath, lastestBranch.Item1, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception(string.Format($"Project:{newProjectName} Action:{CHECKOUTBRANCH} failed!!! Error:{commandResult.ErrorOutput}", lastestBranch.Item1));
+                    throw new Exception(string.Format($"Project:{projectPath} Action:{CHECKOUTBRANCH} failed!!! Error:{commandResult.ErrorOutput}", lastestBranch.Item1));
                 }
 
-                commandResult = GitFetch(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = GitFetch(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception($"Project:{newProjectName} Action:{FETCHBRANCH} failed!!! Error:{commandResult.ErrorOutput}");
+                    throw new Exception($"Project:{projectPath} Action:{FETCHBRANCH} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                commandResult = GitPull(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = GitPull(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception($"Project:{newProjectName} Action:{PULLBRANCH} failed!!! Error:{commandResult.ErrorOutput}");
+                    throw new Exception($"Project:{projectPath} Action:{PULLBRANCH} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                commandResult = GitCheckOut(newProjectName, lastestBranch.Item1, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = GitCheckOut(projectPath, lastestBranch.Item1, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception(string.Format($"Project:{newProjectName} Action:{CHECKOUTBRANCH} failed!!! Error:{commandResult.ErrorOutput}", lastestBranch.Item1));
+                    throw new Exception(string.Format($"Project:{projectPath} Action:{CHECKOUTBRANCH} failed!!! Error:{commandResult.ErrorOutput}", lastestBranch.Item1));
                 }
 
-                commandResult = GitCreatePersonalBranch(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = GitCreatePersonalBranch(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception(string.Format($"Project:{newProjectName} Action:{CREATEPERSONALBRANCH} failed!!! Error:{commandResult.ErrorOutput}", newProjectName));
+                    throw new Exception(string.Format($"Project:{projectPath} Action:{CREATEPERSONALBRANCH} failed!!! Error:{commandResult.ErrorOutput}", projectPath));
                 }
 
-                commandResult = Init(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = Init(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception($"Project:{newProjectName} Action:{INITCMD} failed!!! Error:{commandResult.ErrorOutput}");
+                    throw new Exception($"Project:{projectPath} Action:{INITCMD} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                commandResult = UpdateExternalDrops(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
-
-                if (commandResult.ExitCode != 0)
+                foreach (var packageConfig in Directory.EnumerateFiles(Path.Combine(projectPath, "Source"), "packages.config", SearchOption.AllDirectories))
                 {
-                    throw new Exception($"Project:{newProjectName} Action:{UpdateExternalDropsCMD} failed!!! Error:{commandResult.ErrorOutput}");
-                }
-
-                foreach (var packageConfig in Directory.EnumerateFiles(Path.Combine(REPOSFOLDER, projectName, "Source"), "packages.config", SearchOption.AllDirectories))
-                {
-                    commandResult = NugetPackageConfig(newProjectName, packageConfig, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                    commandResult = NugetPackageConfig(projectPath, packageConfig, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                     if (commandResult.ExitCode != 0)
                     {
-                        throw new Exception($"Project:{newProjectName} Action:NugetPackageConfig config:{packageConfig} failed!!! Error:{commandResult.ErrorOutput}");
+                        throw new Exception($"Project:{projectPath} Action:NugetPackageConfig config:{packageConfig} failed!!! Error:{commandResult.ErrorOutput}");
                     }
                 }
 
-                commandResult = RebulidAll(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = UpdateExternalDrops(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception($"Project:{newProjectName} Action:ReBuildAll failed!!! Error:{commandResult.ErrorOutput}");
+                    throw new Exception($"Project:{projectPath} Action:{UpdateExternalDropsCMD} failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                commandResult = CreatePackage(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = RebulidAll(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception($"Project:{newProjectName} Action:CreatePackage failed!!! Error:{commandResult.ErrorOutput}");
+                    throw new Exception($"Project:{projectPath} Action:ReBuildAll failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                commandResult = OpenReposSln(newProjectName, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = CreatePackage(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode != 0)
                 {
-                    throw new Exception($"Project:{newProjectName} Action:{OPENREPOSSLN} failed!!! Error:{commandResult.ErrorOutput}");
+                    throw new Exception($"Project:{projectPath} Action:CreatePackage failed!!! Error:{commandResult.ErrorOutput}");
                 }
 
-                CheckOutedLatestBranch checkOutedLatestBranch = new CheckOutedLatestBranch(true, lastestBranch.Item1, string.Format(PERSONAL, newProjectName), lastestBranch.Item2, lastestBranch.Item3);
+                commandResult = OpenReposSln(projectPath, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+                if (commandResult.ExitCode != 0)
+                {
+                    throw new Exception($"Project:{projectPath} Action:{OPENREPOSSLN} failed!!! Error:{commandResult.ErrorOutput}");
+                }
+
+                CheckOutedLatestBranch checkOutedLatestBranch = new CheckOutedLatestBranch(true, lastestBranch.Item1, string.Format(PERSONAL, projectPath), lastestBranch.Item2, lastestBranch.Item3);
 
                 //WriteFuctionName2Log(MethodBase.GetCurrentMethod().Name, logNotify, false);
 
@@ -848,12 +884,22 @@ namespace Utilities
             }
             else
             {
-                throw new Exception($"Project:{newProjectName} Action:Got latest branch failed!!! Error:latest branch");
+                throw new Exception($"Project:{projectPath} Action:Got latest branch failed!!! Error:latest branch");
             }
         }
 
-        public static CommandResult PostBuild(string localFolder, Tuple<string, string, Version> remoteBranchInfo, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult PostBuild(string localFolder, Tuple<string, string, Version, Func<ICommandNotify, ILogNotify, CancellationTokenSource, CancellationTokenSource, Version>> remoteBranchInfo, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
+            if (remoteBranchInfo.Item3 == null && remoteBranchInfo.Item4 != null)
+            {
+                remoteBranchInfo = new Tuple<string, string, Version, Func<ICommandNotify, ILogNotify, CancellationTokenSource, CancellationTokenSource, Version>>(remoteBranchInfo.Item1, remoteBranchInfo.Item2, remoteBranchInfo.Item4(commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill), remoteBranchInfo.Item4);
+            }
+
+            if (remoteBranchInfo.Item3 == null)
+            {
+                throw new Exception($@"the tag for {remoteBranchInfo.Item2} is null !!!");
+            }
+
             if (!File.Exists(Path.Combine(localFolder, PSOTBUILDCMD)))
             {
                 throw new FileNotFoundException($"{ PSOTBUILDCMD} not found", Path.Combine(localFolder, PSOTBUILDCMD));
@@ -873,26 +919,6 @@ namespace Utilities
             string dropPath = Path.Combine(DESMOBUILDFOLDER, branch, version).Replace('/', '\\');
 
             string postBuildPS1Conext = File.ReadAllText(Path.Combine(localFolder, PSOTBUILDPS1));
-
-            //if (!Directory.Exists(Path.Combine(dropPath, RS4, RS4X86DEBUG)) || !Directory.Exists(Path.Combine(dropPath, RS4, RS4X64DEBUG)))
-            //{
-            //    throw new FileNotFoundException($"Server Build not found", Path.Combine(dropPath, RS4));
-            //}
-
-            //CommandResult commandResult;
-
-            //if (postBuildPS1Conext.Contains(Path.Combine(RS4, RS4X86DEBUG)) && postBuildPS1Conext.Contains(Path.Combine(RS4, RS4X64DEBUG)))
-            //{
-            //    commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {dropPath}\\", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
-            //}
-            //else if (postBuildPS1Conext.Contains(RS4X86DEBUG) && postBuildPS1Conext.Contains(RS4X64DEBUG))
-            //{
-            //    commandResult = Run(localFolder, $"{PSOTBUILDCMD} {deviceName} {version} {Path.Combine(dropPath, RS4)}\\", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
-            //}
-            //else
-            //{
-            //    throw new Exception($"Pls check NativeItemsPath and ManagedItemsPath in {Path.Combine(localFolder, PSOTBUILDPS1)} path not include {RS4}");
-            //}
 
             CommandResult commandResult;
 
@@ -986,11 +1012,17 @@ namespace Utilities
             return commandResult;
         }
 
-        public static CommandResult UploadProvisioningTools2Nuget(string project, string id, string destination, Action<string> updateVersion, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        public static CommandResult UploadProvisioningTools2Nuget(string projectPath,string buildScriptsPath, string id, string destination, Action<string> updateVersion, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            string CreateHashAndVersionCmd = Path.Combine(string.Format(BUILDSCRIPTSFOLDER, project), CREATEHASHANDVERSION);
-            string PublishLocalBinariesCmd = Path.Combine(string.Format(BUILDSCRIPTSFOLDER, project), PUBLISHLOCALBINARIES);
-            string provisioningToolsFolder = Path.Combine(REPOSFOLDER, project, destination);
+            string buildScriptsFolder = buildScriptsPath;
+
+            if (!Directory.Exists(buildScriptsFolder))
+            {
+                throw new FileNotFoundException($"{buildScriptsFolder} not found", buildScriptsFolder);
+            }
+
+            string CreateHashAndVersionCmd = Path.Combine(buildScriptsFolder, CREATEHASHANDVERSION);
+            string PublishLocalBinariesCmd = Path.Combine(buildScriptsFolder, PUBLISHLOCALBINARIES);
 
             if (!File.Exists(CreateHashAndVersionCmd))
             {
@@ -1002,28 +1034,28 @@ namespace Utilities
                 throw new FileNotFoundException($"{PUBLISHLOCALBINARIES} not found", PublishLocalBinariesCmd);
             }
 
-            if (!Directory.Exists(provisioningToolsFolder) || Directory.GetDirectories(provisioningToolsFolder).Length == 0)
+            if (!Directory.Exists(destination) || Directory.GetDirectories(destination).Length == 0)
             {
-                throw new FileNotFoundException($"provisioningTools folder not found or is an empty folder", provisioningToolsFolder);
+                throw new FileNotFoundException($"provisioningTools folder not found or is an empty folder", destination);
             }
 
-            Directory.GetFiles(provisioningToolsFolder, "*.nuspec", SearchOption.TopDirectoryOnly).ToList().ForEach(fileName => File.Delete(fileName));
+            Directory.GetFiles(destination, "*.nuspec", SearchOption.TopDirectoryOnly).ToList().ForEach(fileName => File.Delete(fileName));
 
-            CommandResult commandResult = Run(Path.Combine(string.Format(BUILDSCRIPTSFOLDER, project)), $@"{CREATEHASHANDVERSION} ..\{destination}", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            CommandResult commandResult = Run(Path.Combine(buildScriptsFolder), $@"{CREATEHASHANDVERSION} {destination}", commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             if (commandResult.ExitCode == 0)
             {
                 string newVersion = commandResult.StandOutput.Split(Environment.NewLine.ToCharArray()).Last(line => line.Contains("New Version:")).Split(':').Last().Trim();
                 string[] idSplits = id.Split('_');
-                string cmd = $@"{PUBLISHLOCALBINARIES} -Type {idSplits[0]} -Project {idSplits[1]} -Platform {idSplits[2]} -DropPath ..\{destination}";
+                string cmd = $@"{PUBLISHLOCALBINARIES} -Type {idSplits[0]} -Project {idSplits[1]} -Platform {idSplits[2]} -DropPath {destination}";
 
-                commandResult = Run(Path.Combine(string.Format(BUILDSCRIPTSFOLDER, project)), cmd, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                commandResult = Run(Path.Combine(buildScriptsFolder), cmd, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
                 if (commandResult.ExitCode == 0)
                 {
                     updateVersion(newVersion);
 
-                    Directory.Delete(provisioningToolsFolder, true);
+                    Directory.Delete(destination, true);
                 }
             }
 

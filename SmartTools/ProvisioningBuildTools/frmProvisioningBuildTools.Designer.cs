@@ -111,6 +111,7 @@
             this.Text = "Provisioning Build Tools";
             this.Activated += new System.EventHandler(this.frmProvisioningBuildTools_Activated);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmProvisioningBuildTools_FormClosing);
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.frmProvisioningBuildTools_FormClosed);
             this.Load += new System.EventHandler(this.frmProvisioningBuildTools_Load);
             this.ResumeLayout(false);
 

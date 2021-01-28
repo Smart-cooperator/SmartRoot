@@ -22,6 +22,7 @@ namespace ProvisioningBuildTools.SelectForm
         public ICommandNotify CommandNotify { get; set; }
 
         private SelectRemoteBranchInput input;
+        private SelectLocalBranchInput inputLocalFolder;
 
         private Action endInvoke;
         private Action startInvoke;
@@ -77,14 +78,15 @@ namespace ProvisioningBuildTools.SelectForm
             //cmbLocalBranches.IntegralHeight = false;           
             this.txtNewBranchName.Enabled = false;
             this.btnOK.Enabled = false;
-            input = new SelectRemoteBranchInput(CommandNotify, LogNotify, startInvoke, endInvoke);
+            inputLocalFolder = new SelectLocalBranchInput(LogNotify);
+            input = new SelectRemoteBranchInput(inputLocalFolder, CommandNotify, LogNotify, startInvoke, endInvoke);
         }
 
         private void EnableRun(bool enable = true)
         {
             if (this.InvokeRequired)
             {
-                this.BeginInvoke(new Action<bool>(EnableRun), enable);
+                this.Invoke(new Action<bool>(EnableRun), enable);
             }
             else
             {
@@ -110,9 +112,9 @@ namespace ProvisioningBuildTools.SelectForm
 
         private void cmbBranch_DropDown(object sender, EventArgs e)
         {
-            if (cmbProject.Items.Count != 0 && cmbBranch.Items.Count == 0 && !string.IsNullOrEmpty(cmbProject.SelectedItem.ToString()))
+            if (cmbProject.Items.Count != 0 && cmbBranch.Items.Count == 0 && !string.IsNullOrEmpty(cmbProject.SelectedItem?.ToString()))
             {
-                cmbBranch.Items.AddRange(input.Projects[cmbProject.SelectedItem.ToString()]);
+                cmbBranch.Items.AddRange(input.Projects[cmbProject.SelectedItem?.ToString()]);
             }
         }
 
@@ -120,7 +122,7 @@ namespace ProvisioningBuildTools.SelectForm
         {
             cmbBranch.Items.Clear();
             this.txtNewBranchName.Text = string.Empty;
-            this.txtLocalBranchName.Text = string.Format(Command.PERSONAL, cmbProject.SelectedItem.ToString());
+            this.txtLocalBranchName.Text = string.Format(Command.PERSONAL, cmbProject.SelectedItem?.ToString());
             this.txtTag.Text = string.Empty;
             this.txtLastModifiedTime.Text = string.Empty;
             this.txtNewBranchName.Enabled = true;
@@ -130,11 +132,11 @@ namespace ProvisioningBuildTools.SelectForm
         {
             lock (GetBranchInfoLock)
             {
-                BranchInfo branchInfo = input.GetBranchInfo(cmbBranch.SelectedItem.ToString());
+                BranchInfo branchInfo = input.GetBranchInfo(cmbBranch.SelectedItem?.ToString());
 
                 if (branchInfo == null)
                 {
-                    GetBranchName = cmbBranch.SelectedItem.ToString();
+                    GetBranchName = cmbBranch.SelectedItem?.ToString();
                     GetBranchInfo = true;
                 }
                 else
@@ -148,7 +150,7 @@ namespace ProvisioningBuildTools.SelectForm
         {
             if (InvokeRequired)
             {
-                this.BeginInvoke(new Action<BranchInfo>(ShowBranchInfo), branchInfo);
+                this.Invoke(new Action<BranchInfo>(ShowBranchInfo), branchInfo);
             }
             else
             {
@@ -161,11 +163,11 @@ namespace ProvisioningBuildTools.SelectForm
         {
             if (!string.IsNullOrEmpty(txtNewBranchName.Text))
             {
-                this.txtLocalBranchName.Text = $"{string.Format(Command.PERSONAL, cmbProject.SelectedItem.ToString())}_{txtNewBranchName.Text}";
+                this.txtLocalBranchName.Text = $"{string.Format(Command.PERSONAL, cmbProject.SelectedItem?.ToString())}_{txtNewBranchName.Text}";
             }
             else
             {
-                this.txtLocalBranchName.Text = string.Format(Command.PERSONAL, cmbProject.SelectedItem.ToString());
+                this.txtLocalBranchName.Text = string.Format(Command.PERSONAL, cmbProject.SelectedItem?.ToString());
             }
         }
 

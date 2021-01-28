@@ -40,11 +40,12 @@
             this.txtLastModifiedTime = new System.Windows.Forms.TextBox();
             this.lblLocalBuildFolder = new System.Windows.Forms.Label();
             this.cmdLocalBuildFolder = new System.Windows.Forms.ComboBox();
+            this.btnWait = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnOK
             // 
-            this.btnOK.Location = new System.Drawing.Point(200, 319);
+            this.btnOK.Location = new System.Drawing.Point(142, 319);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(75, 23);
             this.btnOK.TabIndex = 0;
@@ -54,7 +55,7 @@
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(325, 319);
+            this.btnCancel.Location = new System.Drawing.Point(286, 319);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(75, 23);
             this.btnCancel.TabIndex = 1;
@@ -169,12 +170,23 @@
             this.cmdLocalBuildFolder.TabIndex = 11;
             this.cmdLocalBuildFolder.SelectedIndexChanged += new System.EventHandler(this.cmdLocalBuildFolder_SelectedIndexChanged);
             // 
+            // btnWait
+            // 
+            this.btnWait.Location = new System.Drawing.Point(434, 319);
+            this.btnWait.Name = "btnWait";
+            this.btnWait.Size = new System.Drawing.Size(106, 23);
+            this.btnWait.TabIndex = 12;
+            this.btnWait.Text = "WaitForTag";
+            this.btnWait.UseVisualStyleBackColor = true;
+            this.btnWait.Click += new System.EventHandler(this.btnWait_Click);
+            // 
             // frmSelectRemoteBranchPostBuild
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(650, 372);
             this.ControlBox = false;
+            this.Controls.Add(this.btnWait);
             this.Controls.Add(this.cmdLocalBuildFolder);
             this.Controls.Add(this.lblLocalBuildFolder);
             this.Controls.Add(this.txtLastModifiedTime);
@@ -212,5 +224,6 @@
         private System.Windows.Forms.TextBox txtLastModifiedTime;
         private System.Windows.Forms.Label lblLocalBuildFolder;
         private System.Windows.Forms.ComboBox cmdLocalBuildFolder;
+        private System.Windows.Forms.Button btnWait;
     }
 }
