@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using Utilities;
+using ProvisioningBuildTools;
 
 namespace ProvisioningBuildTools.SelectOutput
 {
@@ -13,14 +13,25 @@ namespace ProvisioningBuildTools.SelectOutput
     {
         public Func<string, string> GeneratePackageConfig { get; }
 
+        public string IdList { get; }
+
         public SelectPackagesInfoOutput(List<Package> packages)
         {
+            StringBuilder stringBuilder = new StringBuilder();
+
+            foreach (var package in packages.Distinct(new Package()))
+            {
+                stringBuilder.Append(package.Id).Append(" + ");
+            }
+
+            IdList = stringBuilder.ToString().TrimEnd(new char[] { '+', ' ' });
+
             GeneratePackageConfig = new Func<string, string>(
                 (packageConfigFile) =>
                                     {
                                         StringBuilder resultSB = new StringBuilder();
 
-                                        packages.Distinct(new Package());
+                                        packages = packages.Distinct(new Package()).ToList();
 
                                         XmlDocument packageDoc = new XmlDocument();
                                         packageDoc.Load(packageConfigFile);
@@ -48,9 +59,16 @@ namespace ProvisioningBuildTools.SelectOutput
 
                                             resultSB.AppendLine($@"Please share: {shareFolder}\");
 
-                                            if (Directory.Exists(shareFolder))
+                                            try
                                             {
-                                                Directory.Delete(shareFolder, true);
+                                                if (Directory.Exists(shareFolder))
+                                                {
+                                                    Directory.Delete(shareFolder, true);
+                                                }
+                                            }
+                                            catch (Exception)
+                                            {
+                                                Command.Run(shareFolder, $@"rd /S /Q {shareFolder}");
                                             }
 
                                             if (i >= root.ChildNodes.Count)
@@ -62,7 +80,7 @@ namespace ProvisioningBuildTools.SelectOutput
                                             root.LastChild.Attributes["source"].Value = package.Source;
                                             root.LastChild.Attributes["Version"].Value = package.Version;
                                             root.LastChild.Attributes["UseDangerDestination"].Value = "True";
-                                            root.LastChild.Attributes["destination"].Value = Path.Combine(Command.GLOBALPACKAGEFOLDER,"Packages", package.Id, versionStr); ;
+                                            root.LastChild.Attributes["destination"].Value = Path.Combine(Command.GLOBALPACKAGEFOLDER, "Packages", package.Id, versionStr); ;
                                         }
 
                                         packageDoc.Save(packageConfigFile);
@@ -115,6 +133,11 @@ namespace ProvisioningBuildTools.SelectOutput
         public int GetHashCode(Package obj)
         {
             return $"{obj.Id.Trim().ToUpper()}{obj.Source.Trim().ToUpper()}{obj.Version.Trim().ToUpper()}".GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return $"{Id} {Source} {Version}";
         }
     }
 }

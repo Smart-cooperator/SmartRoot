@@ -8,12 +8,16 @@ namespace ProvisioningBuildTools
 {
     public enum ExecEnum
     {
-        OpenLocalBranch,
-        BuildLocalBranch,
+        OpenLocalProject,    
+        BuildLocalProject,
+        CreatePackage,
         UpdateExternalDrops,
-        DropRemoteBranch,
-        PostBuildPackage,
+        GetRemoteProject,
+        GetProvisioningArtifact,
+        //PostBuildPackage,
         InstallSurfacePackage,
-        UploadProvisionTools,        
+        UploadNugetPackage,
+        CapsuleParser,
+        ProvisioningTester,
     }
 }

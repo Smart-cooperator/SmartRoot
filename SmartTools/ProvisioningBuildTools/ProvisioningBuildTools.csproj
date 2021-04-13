@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -31,11 +32,20 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <LangVersion>7.2</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -48,6 +58,23 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BackGroundCommand.cs" />
+    <Compile Include="CLI\AbCLIExecInstance.cs" />
+    <Compile Include="CLI\CLIExecGetRemoteProject.cs" />
+    <Compile Include="CLI\CLIExecInstallSurfacePackage.cs" />
+    <Compile Include="CLI\CLIExecGetProvisioningArtifact.cs" />
+    <Compile Include="CLI\CLIExecProvisioningTester.cs" />
+    <Compile Include="CLI\CLIExecUploadNugetPackage.cs" />
+    <Compile Include="CLI\CLIExecCapsuleParser.cs" />
+    <Compile Include="CLI\CLIExecUpdateExternalDrops.cs" />
+    <Compile Include="CLI\CLIExecBuildLocalProject.cs" />
+    <Compile Include="CLI\CLIExecHelp.cs" />
+    <Compile Include="CLI\CLIExecClear.cs" />
+    <Compile Include="CLI\CLIExecChangeProject.cs" />
+    <Compile Include="CLI\CLIExecCreatePackage.cs" />
+    <Compile Include="CLI\CLIExecOpenLocalProject.cs" />
+    <Compile Include="CLI\CLIFactory.cs" />
+    <Compile Include="CLI\CLIWrapper.cs" />
+    <Compile Include="Command.cs" />
     <Compile Include="Enhancelog.cs" />
     <Compile Include="ExecEnum.cs" />
     <Compile Include="frmProvisioningBuildTools.cs">
@@ -56,64 +83,96 @@
     <Compile Include="frmProvisioningBuildTools.Designer.cs">
       <DependentUpon>frmProvisioningBuildTools.cs</DependentUpon>
     </Compile>
+    <Compile Include="Global\GlobalValue.cs" />
     <Compile Include="ProjectSection.cs" />
+    <Compile Include="SelectForm\frmSelectLoaclProjectForProvisioningTesterNew.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SelectForm\frmSelectLoaclProjectForProvisioningTesterNew.Designer.cs">
+      <DependentUpon>frmSelectLoaclProjectForProvisioningTesterNew.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SelectForm\frmSelectLoaclProjectForProvisioningTester.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SelectForm\frmSelectLoaclProjectForProvisioningTester.Designer.cs">
+      <DependentUpon>frmSelectLoaclProjectForProvisioningTester.cs</DependentUpon>
+    </Compile>
     <Compile Include="SelectForm\frmSelectPackagesInfo.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="SelectForm\frmSelectPackagesInfo.Designer.cs">
       <DependentUpon>frmSelectPackagesInfo.cs</DependentUpon>
     </Compile>
-    <Compile Include="SelectForm\frmSelectLoaclBranchForUPT.cs">
+    <Compile Include="SelectForm\frmSelectLoaclProjectForUPT.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SelectForm\frmSelectLoaclBranchForUPT.Designer.cs">
-      <DependentUpon>frmSelectLoaclBranchForUPT.cs</DependentUpon>
+    <Compile Include="SelectForm\frmSelectLoaclProjectForUPT.Designer.cs">
+      <DependentUpon>frmSelectLoaclProjectForUPT.cs</DependentUpon>
     </Compile>
-    <Compile Include="SelectForm\frmSelectRemoteBranchPostBuild.cs">
+    <Compile Include="SelectForm\frmSelectRemoteProjectArtifact.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SelectForm\frmSelectRemoteBranchPostBuild.Designer.cs">
-      <DependentUpon>frmSelectRemoteBranchPostBuild.cs</DependentUpon>
+    <Compile Include="SelectForm\frmSelectRemoteProjectArtifact.Designer.cs">
+      <DependentUpon>frmSelectRemoteProjectArtifact.cs</DependentUpon>
     </Compile>
-    <Compile Include="SelectForm\frmSelectRemoteBranch.cs">
+    <Compile Include="SelectForm\frmSelectRemoteProjectPostBuild.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SelectForm\frmSelectRemoteBranch.Designer.cs">
-      <DependentUpon>frmSelectRemoteBranch.cs</DependentUpon>
+    <Compile Include="SelectForm\frmSelectRemoteProjectPostBuild.Designer.cs">
+      <DependentUpon>frmSelectRemoteProjectPostBuild.cs</DependentUpon>
     </Compile>
-    <Compile Include="SelectForm\frmSelectLoaclBranch.cs">
+    <Compile Include="SelectForm\frmSelectRemoteProject.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="SelectForm\frmSelectLoaclBranch.Designer.cs">
-      <DependentUpon>frmSelectLoaclBranch.cs</DependentUpon>
+    <Compile Include="SelectForm\frmSelectRemoteProject.Designer.cs">
+      <DependentUpon>frmSelectRemoteProject.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SelectForm\frmSelectLoaclProject.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SelectForm\frmSelectLoaclProject.Designer.cs">
+      <DependentUpon>frmSelectLoaclProject.cs</DependentUpon>
     </Compile>
     <Compile Include="ISelect.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SelectInput\SelectPackagesInfoInput.cs" />
-    <Compile Include="SelectInput\SelectRemoteBranchInput.cs" />
-    <Compile Include="SelectInput\SelectLocalBranchInput.cs" />
+    <Compile Include="SelectInput\SelectRemoteProjectInput.cs" />
+    <Compile Include="SelectInput\SelectLocalProjectInput.cs" />
+    <Compile Include="SelectInput\SelectProvisioningTesterInfoInput.cs" />
+    <Compile Include="SelectOutput\SelectProvisioningTesterInfoOutput.cs" />
     <Compile Include="SelectOutput\SelectPackagesInfoOutput.cs" />
-    <Compile Include="SelectOutput\SelectRemoteBranchOutputPostBuild.cs" />
-    <Compile Include="SelectOutput\SelectRemoteBranchOutput.cs" />
-    <Compile Include="SelectOutput\SelectLocalBranchOutput.cs" />
+    <Compile Include="SelectOutput\SelectRemoteProjectOutputArtifact.cs" />
+    <Compile Include="SelectOutput\SelectRemoteProjectOutputPostBuild.cs" />
+    <Compile Include="SelectOutput\SelectRemoteProjectOutput.cs" />
+    <Compile Include="SelectOutput\SelectLocalProjectOutput.cs" />
+    <Compile Include="Utility.cs" />
     <EmbeddedResource Include="frmProvisioningBuildTools.resx">
       <DependentUpon>frmProvisioningBuildTools.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectForm\frmSelectLoaclProjectForProvisioningTesterNew.resx">
+      <DependentUpon>frmSelectLoaclProjectForProvisioningTesterNew.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectForm\frmSelectLoaclProjectForProvisioningTester.resx">
+      <DependentUpon>frmSelectLoaclProjectForProvisioningTester.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SelectForm\frmSelectPackagesInfo.resx">
       <DependentUpon>frmSelectPackagesInfo.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SelectForm\frmSelectLoaclBranchForUPT.resx">
-      <DependentUpon>frmSelectLoaclBranchForUPT.cs</DependentUpon>
+    <EmbeddedResource Include="SelectForm\frmSelectLoaclProjectForUPT.resx">
+      <DependentUpon>frmSelectLoaclProjectForUPT.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SelectForm\frmSelectRemoteBranchPostBuild.resx">
-      <DependentUpon>frmSelectRemoteBranchPostBuild.cs</DependentUpon>
+    <EmbeddedResource Include="SelectForm\frmSelectRemoteProjectArtifact.resx">
+      <DependentUpon>frmSelectRemoteProjectArtifact.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SelectForm\frmSelectRemoteBranch.resx">
-      <DependentUpon>frmSelectRemoteBranch.cs</DependentUpon>
+    <EmbeddedResource Include="SelectForm\frmSelectRemoteProjectPostBuild.resx">
+      <DependentUpon>frmSelectRemoteProjectPostBuild.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="SelectForm\frmSelectLoaclBranch.resx">
-      <DependentUpon>frmSelectLoaclBranch.cs</DependentUpon>
+    <EmbeddedResource Include="SelectForm\frmSelectRemoteProject.resx">
+      <DependentUpon>frmSelectRemoteProject.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SelectForm\frmSelectLoaclProject.resx">
+      <DependentUpon>frmSelectLoaclProject.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -125,6 +184,22 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <None Include="app.manifest" />
+    <EmbeddedResource Include="InstallSurfacePackages\InstallSurfacePackages.cmd" />
+    <EmbeddedResource Include="InstallSurfacePackages\InstallSurfacePackages.ps1" />
+    <EmbeddedResource Include="InstallSurfacePackages\Packages.config" />
+    <None Include="GetProvisioningArtifact\ArtifactDownload.cmd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="GetProvisioningArtifact\ArtifactDownload.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="GetProvisioningArtifact\GetProvisioningArtifacts.cmd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="GetProvisioningArtifact\GetProvisioningArtifacts.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -136,13 +211,42 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Utilities\Utilities.csproj">
-      <Project>{29AB674E-C16D-44F7-8641-97FDE342D275}</Project>
-      <Name>Utilities</Name>
+    <ProjectReference Include="..\CapsuleParser\CapsuleParser\CapsuleParser.csproj">
+      <Project>{31447536-52b4-49a4-94da-d46fefcc57ca}</Project>
+      <Name>CapsuleParser</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ExternalProvisioningTester\ExternalProvisioningTester.csproj">
+      <Project>{d89c5543-f54f-4a08-8909-153c32c4c326}</Project>
+      <Name>ExternalProvisioningTester</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="icon.ico" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>rd /s/q $(ProjectDir)\$(OutDir)\CapsuleParser 
+IF ERRORLEVEL 1 exit /b %25ERRORLEVEL%25
+xcopy /f /y /i $(ProjectDir)\$(OutDir)\CapsuleParser.* $(ProjectDir)\$(OutDir)\CapsuleParser 
+IF ERRORLEVEL 1 exit /b %25ERRORLEVEL%25
+del /a/f/q  $(ProjectDir)\$(OutDir)\CapsuleParser.*
+IF ERRORLEVEL 1 exit /b %25ERRORLEVEL%25
+rd /s/q $(ProjectDir)\$(OutDir)\ExternalProvisioningTester 
+IF ERRORLEVEL 1 exit /b %25ERRORLEVEL%25
+xcopy /f /y /i $(ProjectDir)\$(OutDir)\ExternalProvisioningTester.* $(ProjectDir)\$(OutDir)\ExternalProvisioningTester 
+IF ERRORLEVEL 1 exit /b %25ERRORLEVEL%25
+del /a/f/q  $(ProjectDir)\$(OutDir)\ExternalProvisioningTester.*
+IF ERRORLEVEL 1 exit /b %25ERRORLEVEL%25
+xcopy /f /y /i "$(SolutionDir)\Introduction of Tools.docx" $(ProjectDir)\$(OutDir)
+IF ERRORLEVEL 1 exit /b %25ERRORLEVEL%25</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>rd /s/q $(ProjectDir)\$(OutDir) 
+IF ERRORLEVEL 1 exit /b %25ERRORLEVEL%25</PreBuildEvent>
+  </PropertyGroup>
 </Project>

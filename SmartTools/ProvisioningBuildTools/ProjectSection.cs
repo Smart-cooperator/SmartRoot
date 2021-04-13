@@ -22,7 +22,16 @@ namespace ProvisioningBuildTools
         {
             get
             {
-                return (ProjectSection)ConfigurationManager.GetSection("projectSettings");
+                try
+                {
+                    ConfigurationManager.RefreshSection("projectSettings");
+
+                    return (ProjectSection)ConfigurationManager.GetSection("projectSettings");
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
             }
         }
     }
@@ -78,6 +87,76 @@ namespace ProvisioningBuildTools
         {
             get { return (string)base["buildScriptsFolder"]; }
             set { base["buildScriptsFolder"] = value; }
+        }
+
+        [ConfigurationProperty("provisioningPackageFolder", DefaultValue = "")]
+        public string ProvisioningPackageFolder
+        {
+            get { return (string)base["provisioningPackageFolder"]; }
+            set { base["provisioningPackageFolder"] = value; }
+        }
+
+        [ConfigurationProperty("capsuleFolder", DefaultValue = "")]
+        public string CapsuleFolder
+        {
+            get { return (string)base["capsuleFolder"]; }
+            set { base["capsuleFolder"] = value; }
+        }
+
+        [ConfigurationProperty("capsuleInfoConfigurationPath", DefaultValue = "")]
+        public string CapsuleInfoConfigurationPath
+        {
+            get { return (string)base["capsuleInfoConfigurationPath"]; }
+            set { base["capsuleInfoConfigurationPath"] = value; }
+        }
+
+        [ConfigurationProperty("inputGenealogyPath", DefaultValue = "")]
+        public string InputGenealogyPath
+        {
+            get { return (string)base["inputGenealogyPath"]; }
+            set { base["inputGenealogyPath"] = value; }
+        }
+
+        [ConfigurationProperty("taskOpCodeList", DefaultValue = "")]
+        public string TaskOpCodeList
+        {
+            get { return (string)base["taskOpCodeList"]; }
+            set { base["taskOpCodeList"] = value; }
+        }
+
+        [ConfigurationProperty("provisioningTesterPreArgFormat", DefaultValue = "")]
+        public string ProvisioningTesterPreArgFormat
+        {
+            get { return (string)base["provisioningTesterPreArgFormat"]; }
+            set { base["provisioningTesterPreArgFormat"] = value; }
+        }
+
+        [ConfigurationProperty("testEnvironmentType", DefaultValue = "")]
+        public string TestEnvironmentType
+        {
+            get { return (string)base["testEnvironmentType"]; }
+            set { base["testEnvironmentType"] = value; }
+        }
+
+        [ConfigurationProperty("inputGenealogyFileName", DefaultValue = "InputGenealogy*.xml")]
+        public string InputGenealogyFileName
+        {
+            get { return (string)base["inputGenealogyFileName"]; }
+            set { base["inputGenealogyFileName"] = value; }
+        }
+
+        [ConfigurationProperty("nodeNameForSN", DefaultValue = "SystemDutSn")]
+        public string NodeNameForSN
+        {
+            get { return (string)base["nodeNameForSN"]; }
+            set { base["nodeNameForSN"] = value; }
+        }
+
+        [ConfigurationProperty("useExternalProvisioningTester", DefaultValue = null)]
+        public string UseExternalProvisioningTester
+        {
+            get { return (string)base["useExternalProvisioningTester"]; }
+            set { base["useExternalProvisioningTester"] = value; }
         }
     }
 }

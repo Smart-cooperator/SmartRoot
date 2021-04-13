@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmProvisioningBuildTools));
             this.rtbCMD = new System.Windows.Forms.RichTextBox();
             this.cmbExecItems = new System.Windows.Forms.ComboBox();
             this.btnExec = new System.Windows.Forms.Button();
@@ -43,22 +44,24 @@
             this.rtbCMD.Size = new System.Drawing.Size(1173, 605);
             this.rtbCMD.TabIndex = 1;
             this.rtbCMD.Text = "";
+            this.rtbCMD.LinkClicked += new System.Windows.Forms.LinkClickedEventHandler(this.rtbCMD_LinkClicked);
             // 
             // cmbExecItems
             // 
+            this.cmbExecItems.Font = new System.Drawing.Font("Microsoft Sans Serif", 10.25F);
             this.cmbExecItems.FormattingEnabled = true;
-            this.cmbExecItems.IntegralHeight = false;
-            this.cmbExecItems.ItemHeight = 16;
-            this.cmbExecItems.Location = new System.Drawing.Point(1206, 76);
+            this.cmbExecItems.ItemHeight = 20;
+            this.cmbExecItems.Location = new System.Drawing.Point(1191, 89);
             this.cmbExecItems.Name = "cmbExecItems";
-            this.cmbExecItems.Size = new System.Drawing.Size(184, 24);
+            this.cmbExecItems.Size = new System.Drawing.Size(250, 28);
             this.cmbExecItems.TabIndex = 2;
             // 
             // btnExec
             // 
-            this.btnExec.Location = new System.Drawing.Point(1260, 172);
+            this.btnExec.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
+            this.btnExec.Location = new System.Drawing.Point(1191, 173);
             this.btnExec.Name = "btnExec";
-            this.btnExec.Size = new System.Drawing.Size(75, 23);
+            this.btnExec.Size = new System.Drawing.Size(250, 40);
             this.btnExec.TabIndex = 3;
             this.btnExec.Text = "Exec";
             this.btnExec.UseVisualStyleBackColor = true;
@@ -66,9 +69,10 @@
             // 
             // btnAbort
             // 
-            this.btnAbort.Location = new System.Drawing.Point(1260, 257);
+            this.btnAbort.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
+            this.btnAbort.Location = new System.Drawing.Point(1191, 280);
             this.btnAbort.Name = "btnAbort";
-            this.btnAbort.Size = new System.Drawing.Size(75, 23);
+            this.btnAbort.Size = new System.Drawing.Size(250, 40);
             this.btnAbort.TabIndex = 4;
             this.btnAbort.Text = "Abort";
             this.btnAbort.UseVisualStyleBackColor = true;
@@ -76,9 +80,10 @@
             // 
             // btnClear
             // 
-            this.btnClear.Location = new System.Drawing.Point(1260, 348);
+            this.btnClear.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
+            this.btnClear.Location = new System.Drawing.Point(1191, 392);
             this.btnClear.Name = "btnClear";
-            this.btnClear.Size = new System.Drawing.Size(75, 23);
+            this.btnClear.Size = new System.Drawing.Size(250, 40);
             this.btnClear.TabIndex = 5;
             this.btnClear.Text = "Clear";
             this.btnClear.UseVisualStyleBackColor = true;
@@ -86,9 +91,10 @@
             // 
             // btnKill
             // 
-            this.btnKill.Location = new System.Drawing.Point(1260, 425);
+            this.btnKill.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F);
+            this.btnKill.Location = new System.Drawing.Point(1191, 496);
             this.btnKill.Name = "btnKill";
-            this.btnKill.Size = new System.Drawing.Size(75, 23);
+            this.btnKill.Size = new System.Drawing.Size(250, 40);
             this.btnKill.TabIndex = 6;
             this.btnKill.Text = "Kill";
             this.btnKill.UseVisualStyleBackColor = true;
@@ -98,15 +104,16 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1402, 629);
+            this.ClientSize = new System.Drawing.Size(1450, 629);
             this.Controls.Add(this.btnKill);
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.btnAbort);
             this.Controls.Add(this.btnExec);
             this.Controls.Add(this.cmbExecItems);
             this.Controls.Add(this.rtbCMD);
-            this.MaximumSize = new System.Drawing.Size(1420, 676);
-            this.MinimumSize = new System.Drawing.Size(1420, 676);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.MaximumSize = new System.Drawing.Size(1468, 676);
+            this.MinimumSize = new System.Drawing.Size(1468, 676);
             this.Name = "frmProvisioningBuildTools";
             this.Text = "Provisioning Build Tools";
             this.Activated += new System.EventHandler(this.frmProvisioningBuildTools_Activated);

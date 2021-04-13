@@ -10,7 +10,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Utilities;
+using ProvisioningBuildTools;
+using ProvisioningBuildTools.CLI;
 
 namespace ProvisioningBuildTools.SelectForm
 {
@@ -21,6 +22,10 @@ namespace ProvisioningBuildTools.SelectForm
 
         public ILogNotify LogNotify { get; set; }
         public ICommandNotify CommandNotify { get; set; }
+        public AbCLIExecInstance CLIInstance { get; set; }
+
+        private string m_CommandLine;
+        public string CommandLine => m_CommandLine;
 
         private SelectPackagesInfoInput input = new SelectPackagesInfoInput();
 
@@ -63,6 +68,13 @@ namespace ProvisioningBuildTools.SelectForm
             }
 
             m_SelectResult = new SelectPackagesInfoOutput(input.Packages);
+
+            if (CLIInstance != null)
+            {
+                CLIInstance.CommandLineFormatParas["package"] = $"\"{string.Join(",", input.Packages.Select(package => package.ToString()))}\"";
+                m_CommandLine = CLIInstance.GetCommandLine();
+            }
+
             this.DialogResult = DialogResult.OK;
             this.Close();
         }
@@ -133,10 +145,14 @@ namespace ProvisioningBuildTools.SelectForm
 
             if (!string.IsNullOrWhiteSpace(txtInput.Text.Trim()))
             {
-                string[] patterns = new string[] { @"Install-Package (?<Id>\S+) -[Vv]ersion (?<Version>\S+)", @"Install-SurfacePackage (?<Id>\S+) -[Vv]ersion (?<Version>\S+) -[Ss]ource (?<Source>\S+)", @"\[[Ff]:(?<Source>\S+)]\[[Pp]:(?<Id>\S+)]\[[Vv]:(?<Version>\S+?)]" };
-                string sourcePattern = @"Devices\.(?<Source>\S+?)\.Driver";
+                string[] patterns = new string[] { @"Install-Package\s+(?<Id>\S+)\s+-[Vv]ersion\s+(?<Version>\S+)",
+                                                   @"Install-SurfacePackage\s+(?<Id>\S+)\s+-[Vv]ersion\s+(?<Version>\S+)\s+-[Ss]ource\s+(?<Source>\S+)",
+                                                   @"\[[Ff]:(?<Source>\S+)]\[[Pp]:(?<Id>\S+)]\[[Vv]:(?<Version>\S+?)]",
+                                                   @"(?<Id>\S+)\s+(?<Source>\S+)\s+(?<Version>\S+)",
+                                                   @"(?<Id>\S+)\s+(?<Version>\S+)"};
+                string[] sourcePatterns = new string[] { @"Devices\.(?<Source>\S+?)\.Driver", @"Microsoft\.(?<Source>\S+?)\." };
 
-                string[] inputs = txtInput.Text.Trim().Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Where(str => !string.IsNullOrWhiteSpace(str)).ToArray();
+                string[] inputs = txtInput.Text.Trim().Split(Environment.NewLine.ToCharArray(), StringSplitOptions.RemoveEmptyEntries).Where(str => !string.IsNullOrWhiteSpace(str)).Select(str => str.Trim()).ToArray();
 
                 foreach (var input in inputs)
                 {
@@ -154,14 +170,25 @@ namespace ProvisioningBuildTools.SelectForm
                             {
                                 id = ma.Groups["Id"].Value;
                                 version = ma.Groups["Version"].Value;
+                                Group sourceGroup = ma.Groups["Source"];
 
-                                Regex sourceRegex = new Regex(sourcePattern);
-
-                                Match sourceMa = sourceRegex.Match(id);
-
-                                if (sourceMa.Success)
+                                if (sourceGroup.Success)
                                 {
-                                    source = sourceMa.Groups["Source"].Value;
+                                    source = sourceGroup.Value;
+                                }
+                                else
+                                {
+                                    foreach (var sourcePattern in sourcePatterns)
+                                    {
+                                        Regex sourceRegex = new Regex(sourcePattern);
+
+                                        Match sourceMa = sourceRegex.Match(id);
+
+                                        if (sourceMa.Success)
+                                        {
+                                            source = sourceMa.Groups["Source"].Value;
+                                        }
+                                    }
                                 }
                             }
                             else if (ma.Groups.Count == 4)
@@ -169,6 +196,23 @@ namespace ProvisioningBuildTools.SelectForm
                                 id = ma.Groups["Id"].Value;
                                 version = ma.Groups["Version"].Value;
                                 source = ma.Groups["Source"].Value;
+                            }
+                            else if (ma.Groups.Count == 2)
+                            {
+                                id = ma.Groups["Id"].Value;
+                                version = ma.Groups["Version"].Value;
+
+                                foreach (var sourcePattern in sourcePatterns)
+                                {
+                                    Regex sourceRegex = new Regex(sourcePattern);
+
+                                    Match sourceMa = sourceRegex.Match(id);
+
+                                    if (sourceMa.Success)
+                                    {
+                                        source = sourceMa.Groups["Source"].Value;
+                                    }
+                                }
                             }
 
                             if (!string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(source) && !string.IsNullOrWhiteSpace(version))
@@ -233,6 +277,42 @@ namespace ProvisioningBuildTools.SelectForm
         private void btnClear_Click(object sender, EventArgs e)
         {
             this.txtInput.Clear();
+        }
+
+        public void CLIExec()
+        {
+            this.Shown += frmSelectLoaclProject_Shown;
+        }
+
+        private void frmSelectLoaclProject_Shown(object sender, EventArgs e)
+        {
+            if (CLIInstance != null && CLIInstance.ParseSuccess && CLIInstance.FromCLI)
+            {
+                string package = CLIInstance.GetParameterValue("package");
+
+                if (!string.IsNullOrEmpty(package))
+                {
+                    txtInput.Text = package.Replace(",", Environment.NewLine).Replace(";", Environment.NewLine).TrimEnd(Environment.NewLine.ToArray());
+
+                    if (btnConvert.Enabled)
+                    {
+                        btnConvert.PerformClick();
+
+                        if (btnOK.Enabled)
+                        {
+                            btnOK.PerformClick();
+                        }
+                    }
+                    else
+                    {
+                        LogNotify.WriteLog($"CLI Error,unsupported package format for {CLIInstance.CLIExecEnum}", true);
+                    }
+                }
+                else
+                {
+                    LogNotify.WriteLog($"CLI Error, you need to manual select for {CLIInstance.CLIExecEnum}", true);
+                }
+            }
         }
     }
 }

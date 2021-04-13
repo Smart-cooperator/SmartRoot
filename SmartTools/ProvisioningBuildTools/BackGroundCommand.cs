@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Utilities;
+using ProvisioningBuildTools;
 
 namespace ProvisioningBuildTools
 {
@@ -130,7 +130,8 @@ namespace ProvisioningBuildTools
                                     }
                                     else
                                     {
-                                        throw new Exception($"Exec command {commandResult.CommandName} failed!!!");
+                                        logNotify?.WriteLog($"Exec command {commandResult.CommandName} failed!!!", true);
+                                        break;
                                     }
                                 }
                             }
