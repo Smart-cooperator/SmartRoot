@@ -147,6 +147,7 @@ namespace ProvisioningBuildTools
                         }
                     }
                 }
+                else
                 {
                     cmbExecItems.Items.AddRange(Enum.GetNames(typeof(ExecEnum)));
                 }
