@@ -191,9 +191,9 @@ namespace ProvisioningBuildTools.SelectForm
         private void lsbTaskList_MouseUp(object sender, MouseEventArgs e)
         {
             ListBox lsbTaskList = sender as ListBox;
-            int idx1 = (int)lsbTaskList.Tag;
+            int idx1 = lsbTaskList.Tag == null ? -1 : (int)lsbTaskList.Tag;
 
-            if (lsbTaskList.SelectedItem != null && idx1 != lsbTaskList.SelectedIndex)
+            if (lsbTaskList.SelectedItem != null && idx1 != lsbTaskList.SelectedIndex && idx1 > -1)
             {
                 int idx2 = lsbTaskList.SelectedIndex;
 
@@ -467,7 +467,7 @@ namespace ProvisioningBuildTools.SelectForm
 
         private void btnRemove_Click(object sender, EventArgs e)
         {
-            if (lsbSelected.SelectedItem!=null)
+            if (lsbSelected.SelectedItem != null)
             {
                 int selectedIndex = lsbSelected.SelectedIndex;
 
