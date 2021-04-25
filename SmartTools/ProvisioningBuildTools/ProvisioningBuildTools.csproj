@@ -200,6 +200,12 @@
     <None Include="GetProvisioningArtifact\GetProvisioningArtifacts.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="GetProvisioningArtifact\ProvisioningArtifactsValidation.cmd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="GetProvisioningArtifact\ProvisioningArtifactsValidation.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
