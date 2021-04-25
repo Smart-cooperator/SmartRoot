@@ -200,11 +200,21 @@ If($BuildListInfo -and $BuildListInfo.Length -gt 2)
 
                     if($PathExist -eq $True  )
                     {
-                      Add-Type -assembly "system.io.compression.filesystem" | Out-Null
+					  .\ProvisioningArtifactsValidation $BuildDictInfo["Number"] $Path	
+					  
+                      if($LASTEXITCODE -eq 0)
+                      {					  
+						  Add-Type -assembly "system.io.compression.filesystem" | Out-Null
 
-                      [io.compression.zipfile]::CreateFromDirectory($Path, $ZipFilePath)
+						  [io.compression.zipfile]::CreateFromDirectory($Path, $ZipFilePath)
 
-                      "Please share: $ZipFilePath" | Write-Host
+						  "Please share: $ZipFilePath" | Write-Host
+					  }
+					  else
+					  {
+						$Exitcode = -1
+                        $Host.UI.WriteErrorLine("Artifact: $ProvisioningPackageArtifactName Download failed with hash validation mismatch!!!") 
+					  }
                     }
                     else
                     {
