@@ -40,14 +40,25 @@
             this.cmbSlot = new System.Windows.Forms.ComboBox();
             this.lblExec = new System.Windows.Forms.Label();
             this.rtbExec = new System.Windows.Forms.RichTextBox();
-            this.label1 = new System.Windows.Forms.Label();
+            this.lblSelectedTaskList = new System.Windows.Forms.Label();
             this.lblPackageFolder = new System.Windows.Forms.Label();
             this.txtPackageFolder = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
+            this.lblTotalTaskList = new System.Windows.Forms.Label();
             this.btnAdd = new System.Windows.Forms.Button();
             this.btnRemove = new System.Windows.Forms.Button();
             this.lsbTotal = new System.Windows.Forms.ListBox();
             this.lsbSelected = new System.Windows.Forms.ListBox();
+            this.grpLoopTest = new System.Windows.Forms.GroupBox();
+            this.btnClear = new System.Windows.Forms.Button();
+            this.btnAll = new System.Windows.Forms.Button();
+            this.txtLoopCount = new System.Windows.Forms.TextBox();
+            this.chkSKUList = new System.Windows.Forms.CheckedListBox();
+            this.lblSelectedSKUList = new System.Windows.Forms.Label();
+            this.cmbPromiseCity = new System.Windows.Forms.ComboBox();
+            this.lblPromiseCity = new System.Windows.Forms.Label();
+            this.lblLoopCount = new System.Windows.Forms.Label();
+            this.btnClr = new System.Windows.Forms.Button();
+            this.grpLoopTest.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnOK
@@ -83,7 +94,9 @@
             // 
             // lblProvisioningPorject
             // 
-            this.lblProvisioningPorject.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.lblProvisioningPorject.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lblProvisioningPorject.AutoSize = true;
             this.lblProvisioningPorject.Location = new System.Drawing.Point(30, 10);
             this.lblProvisioningPorject.Name = "lblProvisioningPorject";
@@ -94,7 +107,9 @@
             // 
             // lblPackageName
             // 
-            this.lblPackageName.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.lblPackageName.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lblPackageName.AutoSize = true;
             this.lblPackageName.Location = new System.Drawing.Point(30, 96);
             this.lblPackageName.Name = "lblPackageName";
@@ -116,7 +131,9 @@
             // 
             // lblSerialNumber
             // 
-            this.lblSerialNumber.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.lblSerialNumber.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lblSerialNumber.AutoSize = true;
             this.lblSerialNumber.Location = new System.Drawing.Point(30, 141);
             this.lblSerialNumber.Name = "lblSerialNumber";
@@ -137,7 +154,9 @@
             // 
             // lblSlot
             // 
-            this.lblSlot.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.lblSlot.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lblSlot.AutoSize = true;
             this.lblSlot.Location = new System.Drawing.Point(513, 141);
             this.lblSlot.Name = "lblSlot";
@@ -158,7 +177,9 @@
             // 
             // lblExec
             // 
-            this.lblExec.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.lblExec.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lblExec.AutoSize = true;
             this.lblExec.Location = new System.Drawing.Point(101, 479);
             this.lblExec.Name = "lblExec";
@@ -175,20 +196,24 @@
             this.rtbExec.TabIndex = 14;
             this.rtbExec.Text = "";
             // 
-            // label1
+            // lblSelectedTaskList
             // 
-            this.label1.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(513, 182);
-            this.label1.Name = "label1";
-            this.label1.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.label1.Size = new System.Drawing.Size(124, 17);
-            this.label1.TabIndex = 15;
-            this.label1.Text = "Selected Task List";
+            this.lblSelectedTaskList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblSelectedTaskList.AutoSize = true;
+            this.lblSelectedTaskList.Location = new System.Drawing.Point(513, 182);
+            this.lblSelectedTaskList.Name = "lblSelectedTaskList";
+            this.lblSelectedTaskList.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.lblSelectedTaskList.Size = new System.Drawing.Size(124, 17);
+            this.lblSelectedTaskList.TabIndex = 15;
+            this.lblSelectedTaskList.Text = "Selected Task List";
             // 
             // lblPackageFolder
             // 
-            this.lblPackageFolder.Anchor = System.Windows.Forms.AnchorStyles.Right;
+            this.lblPackageFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.lblPackageFolder.AutoSize = true;
             this.lblPackageFolder.Location = new System.Drawing.Point(30, 56);
             this.lblPackageFolder.Name = "lblPackageFolder";
@@ -206,16 +231,18 @@
             this.txtPackageFolder.TabIndex = 17;
             this.txtPackageFolder.TextChanged += new System.EventHandler(this.txtPackageFolder_TextChanged);
             // 
-            // label2
+            // lblTotalTaskList
             // 
-            this.label2.Anchor = System.Windows.Forms.AnchorStyles.Right;
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(30, 182);
-            this.label2.Name = "label2";
-            this.label2.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.label2.Size = new System.Drawing.Size(101, 17);
-            this.label2.TabIndex = 19;
-            this.label2.Text = "Total Task List";
+            this.lblTotalTaskList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblTotalTaskList.AutoSize = true;
+            this.lblTotalTaskList.Location = new System.Drawing.Point(30, 182);
+            this.lblTotalTaskList.Name = "lblTotalTaskList";
+            this.lblTotalTaskList.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.lblTotalTaskList.Size = new System.Drawing.Size(101, 17);
+            this.lblTotalTaskList.TabIndex = 19;
+            this.lblTotalTaskList.Text = "Total Task List";
             // 
             // btnAdd
             // 
@@ -259,20 +286,135 @@
             this.lsbSelected.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lsbTaskList_MouseDown);
             this.lsbSelected.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lsbTaskList_MouseUp);
             // 
+            // grpLoopTest
+            // 
+            this.grpLoopTest.BackColor = System.Drawing.SystemColors.Info;
+            this.grpLoopTest.Controls.Add(this.btnClear);
+            this.grpLoopTest.Controls.Add(this.btnAll);
+            this.grpLoopTest.Controls.Add(this.txtLoopCount);
+            this.grpLoopTest.Controls.Add(this.chkSKUList);
+            this.grpLoopTest.Controls.Add(this.lblSelectedSKUList);
+            this.grpLoopTest.Controls.Add(this.cmbPromiseCity);
+            this.grpLoopTest.Controls.Add(this.lblPromiseCity);
+            this.grpLoopTest.Controls.Add(this.lblLoopCount);
+            this.grpLoopTest.Location = new System.Drawing.Point(906, 12);
+            this.grpLoopTest.Name = "grpLoopTest";
+            this.grpLoopTest.Size = new System.Drawing.Size(450, 580);
+            this.grpLoopTest.TabIndex = 24;
+            this.grpLoopTest.TabStop = false;
+            this.grpLoopTest.Text = "Loop Test Option";
+            // 
+            // btnClear
+            // 
+            this.btnClear.Location = new System.Drawing.Point(326, 130);
+            this.btnClear.Name = "btnClear";
+            this.btnClear.Size = new System.Drawing.Size(75, 23);
+            this.btnClear.TabIndex = 20;
+            this.btnClear.Text = "Clear";
+            this.btnClear.UseVisualStyleBackColor = true;
+            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
+            // 
+            // btnAll
+            // 
+            this.btnAll.Location = new System.Drawing.Point(210, 130);
+            this.btnAll.Name = "btnAll";
+            this.btnAll.Size = new System.Drawing.Size(75, 23);
+            this.btnAll.TabIndex = 19;
+            this.btnAll.Text = "All";
+            this.btnAll.UseVisualStyleBackColor = true;
+            this.btnAll.Click += new System.EventHandler(this.btnAll_Click);
+            // 
+            // txtLoopCount
+            // 
+            this.txtLoopCount.Location = new System.Drawing.Point(152, 43);
+            this.txtLoopCount.Name = "txtLoopCount";
+            this.txtLoopCount.Size = new System.Drawing.Size(121, 22);
+            this.txtLoopCount.TabIndex = 18;
+            this.txtLoopCount.Leave += new System.EventHandler(this.txtLoopCount_Leave);
+            // 
+            // chkSKUList
+            // 
+            this.chkSKUList.FormattingEnabled = true;
+            this.chkSKUList.Location = new System.Drawing.Point(36, 156);
+            this.chkSKUList.Name = "chkSKUList";
+            this.chkSKUList.Size = new System.Drawing.Size(386, 412);
+            this.chkSKUList.TabIndex = 17;
+            this.chkSKUList.MouseDown += new System.Windows.Forms.MouseEventHandler(this.chkSKUList_MouseDown);
+            this.chkSKUList.MouseUp += new System.Windows.Forms.MouseEventHandler(this.chkTaskList_MouseUp);
+            // 
+            // lblSelectedSKUList
+            // 
+            this.lblSelectedSKUList.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblSelectedSKUList.AutoSize = true;
+            this.lblSelectedSKUList.Location = new System.Drawing.Point(33, 136);
+            this.lblSelectedSKUList.Name = "lblSelectedSKUList";
+            this.lblSelectedSKUList.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.lblSelectedSKUList.Size = new System.Drawing.Size(121, 17);
+            this.lblSelectedSKUList.TabIndex = 16;
+            this.lblSelectedSKUList.Text = "Selected SKU List";
+            // 
+            // cmbPromiseCity
+            // 
+            this.cmbPromiseCity.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbPromiseCity.FormattingEnabled = true;
+            this.cmbPromiseCity.Location = new System.Drawing.Point(152, 84);
+            this.cmbPromiseCity.Name = "cmbPromiseCity";
+            this.cmbPromiseCity.Size = new System.Drawing.Size(121, 24);
+            this.cmbPromiseCity.TabIndex = 3;
+            this.cmbPromiseCity.SelectedValueChanged += new System.EventHandler(this.cmbPromiseCity_SelectedValueChanged);
+            // 
+            // lblPromiseCity
+            // 
+            this.lblPromiseCity.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblPromiseCity.AutoSize = true;
+            this.lblPromiseCity.Location = new System.Drawing.Point(33, 84);
+            this.lblPromiseCity.Name = "lblPromiseCity";
+            this.lblPromiseCity.Size = new System.Drawing.Size(86, 17);
+            this.lblPromiseCity.TabIndex = 2;
+            this.lblPromiseCity.Text = "Promise City";
+            // 
+            // lblLoopCount
+            // 
+            this.lblLoopCount.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblLoopCount.AutoSize = true;
+            this.lblLoopCount.Location = new System.Drawing.Point(33, 44);
+            this.lblLoopCount.Name = "lblLoopCount";
+            this.lblLoopCount.Size = new System.Drawing.Size(81, 17);
+            this.lblLoopCount.TabIndex = 0;
+            this.lblLoopCount.Text = "Loop Count";
+            // 
+            // btnClr
+            // 
+            this.btnClr.Location = new System.Drawing.Point(782, 176);
+            this.btnClr.Name = "btnClr";
+            this.btnClr.Size = new System.Drawing.Size(75, 23);
+            this.btnClr.TabIndex = 25;
+            this.btnClr.Text = "Clear";
+            this.btnClr.UseVisualStyleBackColor = true;
+            this.btnClr.Click += new System.EventHandler(this.btnClr_Click);
+            // 
             // frmSelectLoaclProjectForProvisioningTesterNew
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(918, 597);
+            this.ClientSize = new System.Drawing.Size(1368, 597);
             this.ControlBox = false;
+            this.Controls.Add(this.btnClr);
+            this.Controls.Add(this.grpLoopTest);
             this.Controls.Add(this.lsbSelected);
             this.Controls.Add(this.lsbTotal);
             this.Controls.Add(this.btnRemove);
             this.Controls.Add(this.btnAdd);
-            this.Controls.Add(this.label2);
+            this.Controls.Add(this.lblTotalTaskList);
             this.Controls.Add(this.txtPackageFolder);
             this.Controls.Add(this.lblPackageFolder);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.lblSelectedTaskList);
             this.Controls.Add(this.rtbExec);
             this.Controls.Add(this.lblExec);
             this.Controls.Add(this.lblSlot);
@@ -285,12 +427,14 @@
             this.Controls.Add(this.cmbProvisioningPorject);
             this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnOK);
-            this.MaximumSize = new System.Drawing.Size(936, 644);
-            this.MinimumSize = new System.Drawing.Size(936, 644);
+            this.MaximumSize = new System.Drawing.Size(1386, 644);
+            this.MinimumSize = new System.Drawing.Size(1386, 644);
             this.Name = "frmSelectLoaclProjectForProvisioningTesterNew";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Select Provisioning Tester Info";
             this.Load += new System.EventHandler(this.frmSelectLoaclProjectForProvisioningTesterNew_Load);
+            this.grpLoopTest.ResumeLayout(false);
+            this.grpLoopTest.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -310,13 +454,23 @@
         private System.Windows.Forms.ComboBox cmbSlot;
         private System.Windows.Forms.Label lblExec;
         private System.Windows.Forms.RichTextBox rtbExec;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label lblSelectedTaskList;
         private System.Windows.Forms.Label lblPackageFolder;
         private System.Windows.Forms.TextBox txtPackageFolder;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label lblTotalTaskList;
         private System.Windows.Forms.Button btnAdd;
         private System.Windows.Forms.Button btnRemove;
         private System.Windows.Forms.ListBox lsbTotal;
         private System.Windows.Forms.ListBox lsbSelected;
+        private System.Windows.Forms.GroupBox grpLoopTest;
+        private System.Windows.Forms.Label lblLoopCount;
+        private System.Windows.Forms.Label lblPromiseCity;
+        private System.Windows.Forms.Label lblSelectedSKUList;
+        private System.Windows.Forms.ComboBox cmbPromiseCity;
+        private System.Windows.Forms.CheckedListBox chkSKUList;
+        private System.Windows.Forms.TextBox txtLoopCount;
+        private System.Windows.Forms.Button btnClear;
+        private System.Windows.Forms.Button btnAll;
+        private System.Windows.Forms.Button btnClr;
     }
 }

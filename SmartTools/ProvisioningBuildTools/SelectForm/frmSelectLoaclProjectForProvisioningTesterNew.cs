@@ -14,6 +14,7 @@ using ProvisioningBuildTools.Global;
 using System.Configuration;
 using System.Text.RegularExpressions;
 using ProvisioningBuildTools.CLI;
+using System.Xml.Linq;
 
 namespace ProvisioningBuildTools.SelectForm
 {
@@ -34,6 +35,8 @@ namespace ProvisioningBuildTools.SelectForm
         private Action endInvoke;
         private Action startInvoke;
         private bool needDoubleConfirm = true;
+
+        private Dictionary<string, Dictionary<string, Func<string, string, XDocument>>> promiseCityDict;
 
         public frmSelectLoaclProjectForProvisioningTesterNew(ILogNotify logNotify, ICommandNotify commandNotify)
         {
@@ -80,11 +83,19 @@ namespace ProvisioningBuildTools.SelectForm
             string args = null;
 
             ProvisioningTesterInfo provisioningTesterInfo = input.GetProvisioningTesterInfo(cmbProvisioningPorject.SelectedItem?.ToString());
+            ProvisioningPackageInfo provisioningPackageInfo = provisioningTesterInfo.ProvisioningPackageList[packageName].Value;
 
             args = provisioningTesterInfo.ProvisioningPackageList[packageName].Value.GenerateProvisioningTesterArg(project.SerialNumber, project.Slot, rtbExec.Text.TrimEnd());
 
             if (File.Exists(Path.Combine(project.ProvisioningPackage, Command.ProvisioningTester)))
             {
+                Dictionary<string, XDocument> selectSkuDocumentDict = new Dictionary<string, XDocument>();
+
+                foreach (var item in chkSKUList.CheckedItems)
+                {
+                    selectSkuDocumentDict.Add(item.ToString(), promiseCityDict[cmbPromiseCity.Text][item.ToString()](project.SerialNumber, provisioningPackageInfo.NodeNameForSN));
+                }
+
                 m_SelectResult = new SelectProvisioningTesterInfoOutput(
                     GlobalValue.Root.SelectedProject,
                     project.ProvisioningPackage,
@@ -92,9 +103,13 @@ namespace ProvisioningBuildTools.SelectForm
                     project.Slot,
                     rtbExec.Text.TrimEnd(),
                     args,
-                    provisioningTesterInfo.ProvisioningPackageList[packageName].Value.UseExternalProvisioningTester);
+                    provisioningTesterInfo.ProvisioningPackageList[packageName].Value.UseExternalProvisioningTester,
+                    selectSkuDocumentDict,
+                    provisioningPackageInfo.CurrentGenealogyFile,
+                    Convert.ToInt32(txtLoopCount.Text),
+                    cmbPromiseCity.Text);
 
-                string highlight = $"Please make sure{Environment.NewLine}{Environment.NewLine}ProvisioningPackage:{project.ProvisioningPackage}{Environment.NewLine}{Environment.NewLine}ProvisioningTesterArgs:{args}";
+                string highlight = $"Please make sure{Environment.NewLine}{Environment.NewLine}ProvisioningPackage:{project.ProvisioningPackage}{Environment.NewLine}{Environment.NewLine}ProvisioningTesterArgs:{args}{Environment.NewLine}{Environment.NewLine}SKU:{Environment.NewLine}{string.Join(Environment.NewLine, m_SelectResult.SelectSkuDocumentDict.Select(pair => pair.Key))}{Environment.NewLine}{Environment.NewLine}LoopCount:{txtLoopCount.Text}";
 
                 if (!needDoubleConfirm || MessageBox.Show(highlight, "Double confirm", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) == DialogResult.Yes)
                 {
@@ -158,6 +173,10 @@ namespace ProvisioningBuildTools.SelectForm
             }
 
             Utility.SetSelectedItem(cmbSlot, GlobalValue.Root.GetProject(GlobalValue.Root.SelectedProject)?.Slot);
+
+            txtLoopCount.Text = "1";
+
+            chkSKUList.CheckOnClick = true;
 
             IssueBtnOk();
         }
@@ -310,12 +329,16 @@ namespace ProvisioningBuildTools.SelectForm
             cmbSerialNumber.Items.Clear();
             lsbTotal.Items.Clear();
             lsbSelected.Items.Clear();
+            cmbPromiseCity.Items.Clear();
+            promiseCityDict?.Clear();
 
             if (cmbPackageName.SelectedItem != null)
             {
                 Project project = GlobalValue.Root.GetProject(cmbProvisioningPorject.SelectedItem?.ToString());
 
                 ProvisioningTesterInfo provisioningTesterInfo = input.GetProvisioningTesterInfo(cmbProvisioningPorject.SelectedItem.ToString());
+
+                ProvisioningPackageInfo provisioningPackageInfo = provisioningTesterInfo.ProvisioningPackageList[cmbPackageName.SelectedItem.ToString()].Value;
 
                 cmbSerialNumber.Items.AddRange(provisioningTesterInfo.ProvisioningPackageList[cmbPackageName.SelectedItem.ToString()].Value.SerialNumberList.ToArray());
                 Utility.SetSelectedItem(cmbSerialNumber, project?.SerialNumber);
@@ -324,6 +347,15 @@ namespace ProvisioningBuildTools.SelectForm
                 string[] lastCheckedItems = project?.TaskOpCodeList.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
                 string[] usuallyUsedItems = project?.UsuallyTaskOpCodeList.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
                 Utility.SetItems(lsbTotal, lsbSelected, items, lastCheckedItems, usuallyUsedItems);
+
+                promiseCityDict = LoopTestHelp.GetAllSkus(Path.Combine(txtPackageFolder.Text, cmbPackageName.Text), provisioningPackageInfo.CurrentGenealogyFile, LogNotify);
+
+                if (promiseCityDict.Count != 0)
+                {
+                    cmbPromiseCity.Items.AddRange(promiseCityDict.Keys.ToArray());
+                    cmbPromiseCity.SelectedIndex = 0;
+                }
+
                 IssueExecConetent();
                 IssueBtnOk();
             }
@@ -486,6 +518,112 @@ namespace ProvisioningBuildTools.SelectForm
                 IssueExecConetent();
                 IssueBtnOk();
             }
+        }
+
+        private void cmbSerialNumber_SelectedValueChanged(object sender, EventArgs e)
+        {
+            //ProvisioningTesterInfo provisioningTesterInfo = input.GetProvisioningTesterInfo(cmbProvisioningPorject.SelectedItem.ToString());
+
+            //
+
+            //promiseCityDict?.Clear();
+            //promiseCityDict = LoopTestHelp.GetAllSkus(Path.Combine(txtPackageFolder.Text, cmbPackageName.Text), cmbSerialNumber.Text, provisioningPackageInfo.CurrentGenealogyFile, provisioningPackageInfo.NodeNameForSN, LogNotify);
+
+            //if (promiseCityDict.Count != 0)
+            //{
+            //    cmbPromiseCity.Items.AddRange(promiseCityDict.Keys.ToArray());
+            //}
+        }
+
+        private void txtLoopCount_Leave(object sender, EventArgs e)
+        {
+            int result;
+
+            if (!int.TryParse(txtLoopCount.Text, out result))
+            {
+                txtLoopCount.Text = "1";
+            }
+            else
+            {
+                if (result < 1)
+                {
+                    txtLoopCount.Text = "1";
+                }
+                else
+                {
+                    txtLoopCount.Text = result.ToString();
+                }
+            }
+        }
+
+        private void cmbPromiseCity_SelectedValueChanged(object sender, EventArgs e)
+        {
+            chkSKUList.Items.Clear();
+
+            if (promiseCityDict?.Count > 0)
+            {
+                chkSKUList.Items.AddRange(promiseCityDict[cmbPromiseCity.Text].Keys.ToArray());
+            }
+        }
+
+        private void chkSKUList_MouseDown(object sender, MouseEventArgs e)
+        {
+            chkSKUList.Tag = chkSKUList.SelectedItem;
+        }
+
+        private void chkTaskList_MouseUp(object sender, MouseEventArgs e)
+        {
+            object lastItem = chkSKUList.Tag;
+            object currentItem = chkSKUList.SelectedItem;
+
+            if (currentItem != lastItem && currentItem != null && lastItem != null)
+            {
+
+                int idx1 = chkSKUList.Items.IndexOf(lastItem);
+                int idx2 = chkSKUList.Items.IndexOf(currentItem);
+
+                bool selected1 = chkSKUList.CheckedIndices.Contains(idx1);
+                bool selected2 = chkSKUList.CheckedIndices.Contains(idx2);
+
+                chkSKUList.Items.RemoveAt(idx1);
+                chkSKUList.Items.Insert(idx2, lastItem);
+                chkSKUList.SetItemChecked(idx2, selected1);
+
+                if (idx1 > idx2)
+                {
+                    chkSKUList.SetItemChecked(idx2 + 1, !selected2);
+                }
+                else
+                {
+                    chkSKUList.SetItemChecked(idx2 - 1, !selected2);
+                }
+
+                chkSKUList.SetSelected(idx2, true);
+            }
+        }
+
+        private void btnAll_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < chkSKUList.Items.Count; i++)
+            {
+                chkSKUList.SetItemChecked(i, true);
+            }
+        }
+
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < chkSKUList.Items.Count; i++)
+            {
+                chkSKUList.SetItemChecked(i, false);
+            }
+        }
+
+        private void btnClr_Click(object sender, EventArgs e)
+        {
+            lsbSelected.Items.Clear();
+
+            IssueExecConetent();
+            IssueBtnOk();
         }
     }
 }

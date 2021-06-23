@@ -61,6 +61,9 @@ namespace ProvisioningBuildTools.SelectInput
 
     public class ProvisioningPackageInfo
     {
+        public string CurrentGenealogyFile { get; }
+        public string NodeNameForSN { get; }
+
         public string ProvisioningPackage { get; }
 
         public List<string> SerialNumberList { get; }
@@ -151,6 +154,8 @@ namespace ProvisioningBuildTools.SelectInput
 
                     if (!string.IsNullOrEmpty(selectedGenealogy) && File.Exists(selectedGenealogy))
                     {
+                        CurrentGenealogyFile = selectedGenealogy;
+
                         IEnumerable<string> nodeNameForSNs = new string[] { ProvisioningTesterInfo.LocalProjectInfo.NodeNameForSN, "SystemDutSn", "ComputeDutSn", "SerialNumber" }.Distinct();
 
                         XDocument xDocument = XDocument.Load(selectedGenealogy);
@@ -166,6 +171,7 @@ namespace ProvisioningBuildTools.SelectInput
 
                             if (SerialNumberList.Count != 0)
                             {
+                                NodeNameForSN = nodeNameForSN;
                                 break;
                             }
                         }

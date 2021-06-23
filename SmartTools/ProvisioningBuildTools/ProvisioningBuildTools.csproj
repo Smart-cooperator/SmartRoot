@@ -84,6 +84,7 @@
       <DependentUpon>frmProvisioningBuildTools.cs</DependentUpon>
     </Compile>
     <Compile Include="Global\GlobalValue.cs" />
+    <Compile Include="LoopTestHelp.cs" />
     <Compile Include="ProjectSection.cs" />
     <Compile Include="SelectForm\frmSelectLoaclProjectForProvisioningTesterNew.cs">
       <SubType>Form</SubType>

@@ -14,6 +14,7 @@ using System.Configuration;
 using System.Management;
 using System.Drawing;
 using System.Collections.Concurrent;
+using System.Xml.Linq;
 
 namespace ProvisioningBuildTools
 {
@@ -1553,6 +1554,52 @@ namespace ProvisioningBuildTools
                 {
                     break;
                 }
+            }
+
+            return commandResult;
+        }
+
+        public static CommandResult RunLoopTest(int loopCount, string genealogyFile, Dictionary<string, XDocument> skuDocumentDict, bool useExternalProvisioningTester, string provisioningPackage, string serialNumber, string args, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        {
+            CommandResult commandResult = default(CommandResult);
+
+            bool hasSKU = skuDocumentDict?.Count > 0;
+            string sku = string.Join(",", skuDocumentDict.Keys.Select(key => key.Split('_').Last()));
+
+            logNotify.WriteLog($"SKU:{sku} ,LoopCount:{loopCount}");
+
+            for (int i = 0; i < loopCount; i++)
+            {
+                logNotify.WriteLog($"Current Loop index:{i + 1} start, Toatl Loop Count:{loopCount}");
+
+                if (hasSKU)
+                {
+                    foreach (var item in skuDocumentDict)
+                    {
+                        logNotify.WriteLog($"Current SKU:{item.Key.Split('_').Last()} start,Total SKU:{sku}");
+
+                        bool testmode = false;
+
+                        if (testmode)
+                        {
+                            item.Value.Save($"{Path.Combine(Path.GetDirectoryName(genealogyFile), Path.GetFileNameWithoutExtension(genealogyFile))}_{i}_{item.Key.Replace(".", "_")}{Path.GetExtension(genealogyFile)}");
+                        }
+                        else
+                        {
+                            item.Value.Save(genealogyFile);
+
+                            RunProvisioningTester(useExternalProvisioningTester, provisioningPackage, serialNumber, args, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                        }
+
+                        logNotify.WriteLog($"Current SKU:{item.Key.Split('_').Last()} end,Total SKU:{sku}");
+                    }
+                }
+                else
+                {
+                    RunProvisioningTester(useExternalProvisioningTester, provisioningPackage, serialNumber, args, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                }
+
+                logNotify.WriteLog($"Current Loop index:{i + 1} end, Toatl Loop Count:{loopCount}");
             }
 
             return commandResult;

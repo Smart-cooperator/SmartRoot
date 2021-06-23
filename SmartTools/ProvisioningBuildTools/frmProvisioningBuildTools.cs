@@ -462,11 +462,11 @@ namespace ProvisioningBuildTools
                                 case ExecEnum.ProvisioningTester:
                                     selectProvisioningTesterInfoOutput = ((ISelect<SelectProvisioningTesterInfoOutput>)selectFrom).SelectResult;
 
-                                    ProcessingTitle = $"{execEnum} {selectProvisioningTesterInfoOutput.SelectProject} -ProvisioningPackage {new DirectoryInfo(selectProvisioningTesterInfoOutput.SelectProvisioningPackage).Name} -SN {selectProvisioningTesterInfoOutput.SelectSerialNumber} -Slot {selectProvisioningTesterInfoOutput.SelectSlot} {selectProvisioningTesterInfoOutput.SelectTaskOpList}";
+                                    ProcessingTitle = $"{execEnum} {selectProvisioningTesterInfoOutput.SelectProject} -ProvisioningPackage {new DirectoryInfo(selectProvisioningTesterInfoOutput.SelectProvisioningPackage).Name} -SN {selectProvisioningTesterInfoOutput.SelectSerialNumber} -Slot {selectProvisioningTesterInfoOutput.SelectSlot} -Task {selectProvisioningTesterInfoOutput.SelectTaskOpList} -SKU {string.Join(",",selectProvisioningTesterInfoOutput.SelectSkuDocumentDict.Select(pair => pair.Key.Split('_').Last()))} -LoopCount {selectProvisioningTesterInfoOutput.SelectLoopCount}";
 
                                     runAct = new List<Func<CommandResult>>()
                                     {
-                                        new Func<CommandResult>(() => Command.RunProvisioningTester(selectProvisioningTesterInfoOutput.UseExternalProvisioningTester,selectProvisioningTesterInfoOutput.SelectProvisioningPackage,selectProvisioningTesterInfoOutput.SelectSerialNumber,selectProvisioningTesterInfoOutput.SelectArgs, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
+                                        new Func<CommandResult>(() => Command.RunLoopTest(selectProvisioningTesterInfoOutput.SelectLoopCount,selectProvisioningTesterInfoOutput.SelectGenealogyFile,selectProvisioningTesterInfoOutput.SelectSkuDocumentDict,selectProvisioningTesterInfoOutput.UseExternalProvisioningTester,selectProvisioningTesterInfoOutput.SelectProvisioningPackage,selectProvisioningTesterInfoOutput.SelectSerialNumber,selectProvisioningTesterInfoOutput.SelectArgs, this, this, cancellationTokenSource,cancellationTokenSourceForKill)),
                                     };
 
                                     break;
