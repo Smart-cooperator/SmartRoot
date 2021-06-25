@@ -396,9 +396,16 @@ namespace ProvisioningBuildTools.SelectInput
                 AppDomain.CurrentDomain.AssemblyResolve += resolveEventHandler;
                 Assembly assembly;
 
-                Command.UnblockSingleFile(provisioningTester);
-                assembly = Assembly.LoadFile(provisioningTester);
-
+                try
+                {
+                    assembly = Assembly.LoadFile(provisioningTester);
+                }
+                catch (Exception)
+                {
+                    Command.UnblockSingleFile(provisioningTester);
+                    assembly = Assembly.LoadFile(provisioningTester);
+                }
+         
                 Type[] types = assembly.GetTypes();
 
                 Type codeType = types.FirstOrDefault(type => type.Name.ToUpper().Contains("OpCode".ToUpper()));
@@ -416,8 +423,15 @@ namespace ProvisioningBuildTools.SelectInput
 
                 if (!string.IsNullOrEmpty(commTestDll) && File.Exists(commTestDll))
                 {
-                    Command.UnblockSingleFile(commTestDll);
-                    assembly = Assembly.LoadFile(commTestDll);
+                    try
+                    {
+                        assembly = Assembly.LoadFile(commTestDll);
+                    }
+                    catch (Exception)
+                    {
+                        Command.UnblockSingleFile(commTestDll);
+                        assembly = Assembly.LoadFile(commTestDll);
+                    }
 
                     types = assembly.GetTypes();
 
@@ -511,8 +525,15 @@ namespace ProvisioningBuildTools.SelectInput
                 {
                     Assembly assembly;
 
-                    Command.UnblockSingleFile(provisioningClientDll);
-                    assembly = Assembly.LoadFile(provisioningClientDll);
+                    try
+                    {
+                        assembly = Assembly.LoadFile(provisioningClientDll);
+                    }
+                    catch (Exception)
+                    {
+                        Command.UnblockSingleFile(provisioningClientDll);
+                        assembly = Assembly.LoadFile(provisioningClientDll);
+                    }
 
                     Type[] types = assembly.GetTypes();
 
