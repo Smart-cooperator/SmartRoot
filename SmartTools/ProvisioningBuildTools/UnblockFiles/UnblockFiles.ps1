@@ -1,0 +1,1 @@
+(dir -r) | % { Unblock-File $_.fullname  }

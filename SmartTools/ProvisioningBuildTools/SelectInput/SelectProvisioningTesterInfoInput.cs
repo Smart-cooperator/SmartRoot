@@ -53,6 +53,7 @@ namespace ProvisioningBuildTools.SelectInput
 
                 foreach (var provisioningPackage in provisioningPackages)
                 {
+
                     ProvisioningPackageList.Add(provisioningPackage.Replace(LocalProjectInfo.ProvisioningPackageFolder, string.Empty).Trim(new char[] { '\\', '/' }), new Lazy<ProvisioningPackageInfo>(() => new ProvisioningPackageInfo(provisioningPackage, this)));
                 }
             }
@@ -181,7 +182,7 @@ namespace ProvisioningBuildTools.SelectInput
                         catch (Exception ex)
                         {
                             SerialNumberList = new List<string>();
-                            ProvisioningTesterInfo.LocalProjectInfo.LogNotify.WriteLog($"a bad input genealogy file:{Environment.NewLine}{selectedGenealogy}{Environment.NewLine}{ex.Message}",true);
+                            ProvisioningTesterInfo.LocalProjectInfo.LogNotify.WriteLog($"a bad input genealogy file:{Environment.NewLine}{selectedGenealogy}{Environment.NewLine}{ex.Message}", true);
                         }
                     }
                     else
@@ -393,8 +394,17 @@ namespace ProvisioningBuildTools.SelectInput
             {
                 ResolveEventHandler resolveEventHandler = (s, e) => this.OnAssemblyResolve(e, new DirectoryInfo(provisioningPackage));
                 AppDomain.CurrentDomain.AssemblyResolve += resolveEventHandler;
+                Assembly assembly;
+                try
+                {
+                    assembly = Assembly.LoadFile(provisioningTester);
+                }
+                catch (Exception)
+                {
+                    Command.UnblockFile(provisioningPackage);
 
-                Assembly assembly = Assembly.LoadFile(provisioningTester);
+                    assembly = Assembly.LoadFile(provisioningTester);
+                }
 
                 Type[] types = assembly.GetTypes();
 
@@ -413,7 +423,16 @@ namespace ProvisioningBuildTools.SelectInput
 
                 if (!string.IsNullOrEmpty(commTestDll) && File.Exists(commTestDll))
                 {
-                    assembly = Assembly.LoadFile(commTestDll);
+                    try
+                    {
+                        assembly = Assembly.LoadFile(commTestDll);
+                    }
+                    catch (Exception)
+                    {
+                        Command.UnblockFile(provisioningPackage);
+
+                        assembly = Assembly.LoadFile(commTestDll);
+                    }
 
                     types = assembly.GetTypes();
 
@@ -505,7 +524,17 @@ namespace ProvisioningBuildTools.SelectInput
 
                 if (!string.IsNullOrEmpty(provisioningClientDll) && File.Exists(provisioningClientDll))
                 {
-                    Assembly assembly = Assembly.LoadFile(provisioningClientDll);
+                    Assembly assembly;
+                    try
+                    {
+                        assembly = Assembly.LoadFile(provisioningClientDll);
+                    }
+                    catch (Exception)
+                    {
+                        Command.UnblockFile(provisioningPackage);
+
+                        assembly = Assembly.LoadFile(provisioningClientDll);
+                    }
 
                     Type[] types = assembly.GetTypes();
 

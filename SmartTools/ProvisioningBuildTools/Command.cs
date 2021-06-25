@@ -1643,6 +1643,47 @@ namespace ProvisioningBuildTools
             }
         }
 
+        public static CommandResult UnblockFile(string dir, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        {
+            string[] unblockFiles = new string[] { "UnblockFiles.cmd", "UnblockFiles.ps1" };
+
+            string[] manifestResourceNames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
+
+            for (int i = 0; i < manifestResourceNames.Length; i++)
+            {
+                if (manifestResourceNames[i].Contains("ProvisioningBuildTools.UnblockFiles."))
+                {
+                    string fileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UnblockFiles", manifestResourceNames[i].Replace("ProvisioningBuildTools.UnblockFiles.", string.Empty));
+
+                    if (!File.Exists(fileName))
+                    {
+
+                        using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(manifestResourceNames[i]))
+                        {
+                            string context;
+
+                            using (StreamReader sr = new StreamReader(stream))
+                            {
+                                context = sr.ReadToEnd();
+                            }
+                        
+                            using (FileStream fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
+                            {
+                                using (StreamWriter sw = new StreamWriter(fs))
+                                {
+                                    sw.Write(context);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            CommandResult commandResult = Command.Run(dir, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UnblockFiles", "UnblockFiles.cmd"));
+
+            return commandResult;
+        }
+
         //public static void WriteFuctionName2Log(string Name, ILogNotify logNotify, bool isStart = true)
         //{
         //    logNotify?.WriteLog(isStart ? $"{LOGSTASTR}{Name}{LOGSTASTR}" : $"{LOGENDSTR}{Name}{LOGENDSTR}");
