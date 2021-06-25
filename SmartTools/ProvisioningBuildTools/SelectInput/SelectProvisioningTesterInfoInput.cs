@@ -375,7 +375,7 @@ namespace ProvisioningBuildTools.SelectInput
             }
             catch (Exception)
             {
-                return null;
+                return "CORP";
             }
         }
     }
@@ -395,16 +395,9 @@ namespace ProvisioningBuildTools.SelectInput
                 ResolveEventHandler resolveEventHandler = (s, e) => this.OnAssemblyResolve(e, new DirectoryInfo(provisioningPackage));
                 AppDomain.CurrentDomain.AssemblyResolve += resolveEventHandler;
                 Assembly assembly;
-                try
-                {
-                    assembly = Assembly.LoadFile(provisioningTester);
-                }
-                catch (Exception)
-                {
-                    Command.UnblockFile(provisioningPackage);
 
-                    assembly = Assembly.LoadFile(provisioningTester);
-                }
+                Command.UnblockSingleFile(provisioningTester);
+                assembly = Assembly.LoadFile(provisioningTester);
 
                 Type[] types = assembly.GetTypes();
 
@@ -423,16 +416,8 @@ namespace ProvisioningBuildTools.SelectInput
 
                 if (!string.IsNullOrEmpty(commTestDll) && File.Exists(commTestDll))
                 {
-                    try
-                    {
-                        assembly = Assembly.LoadFile(commTestDll);
-                    }
-                    catch (Exception)
-                    {
-                        Command.UnblockFile(provisioningPackage);
-
-                        assembly = Assembly.LoadFile(commTestDll);
-                    }
+                    Command.UnblockSingleFile(commTestDll);
+                    assembly = Assembly.LoadFile(commTestDll);
 
                     types = assembly.GetTypes();
 
@@ -525,16 +510,9 @@ namespace ProvisioningBuildTools.SelectInput
                 if (!string.IsNullOrEmpty(provisioningClientDll) && File.Exists(provisioningClientDll))
                 {
                     Assembly assembly;
-                    try
-                    {
-                        assembly = Assembly.LoadFile(provisioningClientDll);
-                    }
-                    catch (Exception)
-                    {
-                        Command.UnblockFile(provisioningPackage);
 
-                        assembly = Assembly.LoadFile(provisioningClientDll);
-                    }
+                    Command.UnblockSingleFile(provisioningClientDll);
+                    assembly = Assembly.LoadFile(provisioningClientDll);
 
                     Type[] types = assembly.GetTypes();
 

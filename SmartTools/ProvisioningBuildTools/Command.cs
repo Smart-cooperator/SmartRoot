@@ -1563,7 +1563,7 @@ namespace ProvisioningBuildTools
         {
             CommandResult commandResult = default(CommandResult);
 
-            UnblockFile(provisioningPackage, commandNotify = null, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            UnblockFile(provisioningPackage, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             bool hasSKU = skuDocumentDict?.Count > 0;
             string sku = string.Join(",", skuDocumentDict.Keys.Select(key => key.Split('_').Last()));
@@ -1647,8 +1647,25 @@ namespace ProvisioningBuildTools
 
         public static CommandResult UnblockFile(string dir, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
-            string[] unblockFiles = new string[] { "UnblockFiles.cmd", "UnblockFiles.ps1" };
+            GenerateUnblockScript();
 
+            CommandResult commandResult = Run(dir, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UnblockFiles", "UnblockFiles.cmd"), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+            return commandResult;
+        }
+
+        public static CommandResult UnblockSingleFile(string file, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
+        {
+            GenerateUnblockScript();
+
+            CommandResult commandResult = Run(Path.GetDirectoryName(file), string.Format("{0} {1}", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UnblockFiles", "UnblockSingleFile.cmd"), Path.GetFileName(file)), commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+            return commandResult;
+        }
+
+
+        private static void GenerateUnblockScript()
+        {
             string[] manifestResourceNames = Assembly.GetExecutingAssembly().GetManifestResourceNames();
 
             for (int i = 0; i < manifestResourceNames.Length; i++)
@@ -1659,7 +1676,6 @@ namespace ProvisioningBuildTools
 
                     if (!File.Exists(fileName))
                     {
-
                         using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(manifestResourceNames[i]))
                         {
                             string context;
@@ -1680,10 +1696,6 @@ namespace ProvisioningBuildTools
                     }
                 }
             }
-
-            CommandResult commandResult = Command.Run(dir, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UnblockFiles", "UnblockFiles.cmd"));
-
-            return commandResult;
         }
 
         //public static void WriteFuctionName2Log(string Name, ILogNotify logNotify, bool isStart = true)
