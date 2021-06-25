@@ -1563,6 +1563,8 @@ namespace ProvisioningBuildTools
         {
             CommandResult commandResult = default(CommandResult);
 
+            UnblockFile(provisioningPackage, commandNotify = null, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
             bool hasSKU = skuDocumentDict?.Count > 0;
             string sku = string.Join(",", skuDocumentDict.Keys.Select(key => key.Split('_').Last()));
 
@@ -1666,7 +1668,7 @@ namespace ProvisioningBuildTools
                             {
                                 context = sr.ReadToEnd();
                             }
-                        
+
                             using (FileStream fs = new FileStream(fileName, FileMode.Create, FileAccess.Write))
                             {
                                 using (StreamWriter sw = new StreamWriter(fs))
