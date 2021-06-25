@@ -1672,7 +1672,14 @@ namespace ProvisioningBuildTools
             {
                 if (manifestResourceNames[i].Contains("ProvisioningBuildTools.UnblockFiles."))
                 {
-                    string fileName = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UnblockFiles", manifestResourceNames[i].Replace("ProvisioningBuildTools.UnblockFiles.", string.Empty));
+                    string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "UnblockFiles");
+
+                    string fileName = Path.Combine(folder, manifestResourceNames[i].Replace("ProvisioningBuildTools.UnblockFiles.", string.Empty));
+
+                    if (!Directory.Exists(folder))
+                    {
+                        Directory.CreateDirectory(folder);
+                    }
 
                     if (!File.Exists(fileName))
                     {

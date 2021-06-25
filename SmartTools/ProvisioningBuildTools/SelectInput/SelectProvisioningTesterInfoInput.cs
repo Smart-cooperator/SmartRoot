@@ -542,7 +542,7 @@ namespace ProvisioningBuildTools.SelectInput
             }
             catch (Exception)
             {
-                return null;
+                return "CORP";
             }
         }
 
