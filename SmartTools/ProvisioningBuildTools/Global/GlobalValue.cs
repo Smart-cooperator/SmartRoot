@@ -114,7 +114,7 @@ namespace ProvisioningBuildTools.Global
 
         public Project GetProject(string projectName)
         {
-            return Projects?.Where(b => b.Name.ToLower() == projectName.ToLower()).FirstOrDefault();
+            return Projects?.Where(b => b.Name.ToLower() == projectName?.ToLower()).FirstOrDefault();
         }
 
         public Project AddProject(string name)

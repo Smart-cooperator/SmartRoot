@@ -120,6 +120,9 @@ namespace ProvisioningBuildTools.SelectForm
                         CLIInstance.CommandLineFormatParas["serialnumber"] = cmbSerialNumber.SelectedItem?.ToString();
                         CLIInstance.CommandLineFormatParas["slot"] = cmbSlot.SelectedItem?.ToString();
                         CLIInstance.CommandLineFormatParas["task"] = string.Join(",", lsbSelected.Items.Cast<string>()).TrimEnd(',');
+                        CLIInstance.CommandLineFormatParas["promisecity"] = cmbPromiseCity.SelectedItem?.ToString();
+                        CLIInstance.CommandLineFormatParas["sku"] = string.Join(",", chkSKUList.CheckedItems.Cast<string>()).TrimEnd(',');
+                        CLIInstance.CommandLineFormatParas["loopcount"] = txtLoopCount.Text;
                         CLIInstance.CommandLineFormatParas["force"] = (!needDoubleConfirm).ToString().ToLower();
                         m_CommandLine = CLIInstance.GetCommandLine();
                     }
@@ -433,6 +436,8 @@ namespace ProvisioningBuildTools.SelectForm
                     requiredParas["serialnumber"] = CLIInstance.GetParameterValue("serialnumber", string.Empty);
                     requiredParas["slot"] = CLIInstance.GetParameterValue("slot", string.Empty);
                     requiredParas["task"] = CLIInstance.GetParameterValue("task", string.Empty);
+                    requiredParas["promisecity"] = CLIInstance.GetParameterValue("promisecity", "NULL");
+                    requiredParas["sku"] = CLIInstance.GetParameterValue("sku", string.Empty);
 
                     bool succcess = false;
 
@@ -453,6 +458,35 @@ namespace ProvisioningBuildTools.SelectForm
                             case "task":
                                 succcess = Utility.SetSelectedItem(lsbTotal, lsbSelected, requiredPara.Value.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries), true, true);
                                 break;
+                            case "promisecity":
+                                succcess = Utility.SetSelectedItem(cmbPromiseCity, requiredPara.Value, false, true);
+                                break;
+                            case "sku":
+                                if (string.IsNullOrEmpty(requiredPara.Value))
+                                {
+                                    succcess = true;
+                                }
+                                else
+                                {
+                                    IEnumerable<string> skus = Enumerable.Empty<string>();
+                                    string preVersion = null;
+
+                                    foreach (var sku in requiredPara.Value.Split(','))
+                                    {
+                                        if (sku.Contains("_"))
+                                        {
+                                            preVersion = sku.Split('_').First();
+                                            skus = skus.Append(sku);
+                                        }
+                                        else
+                                        {
+                                            skus = skus.Append($"{preVersion}_{sku}");
+                                        }
+                                    }
+
+                                    succcess = Utility.SetSelectedItem(chkSKUList, skus);
+                                }
+                                break;
                             default:
                                 break;
                         }
@@ -472,6 +506,8 @@ namespace ProvisioningBuildTools.SelectForm
                     if (btnOK.Enabled && requiredCompleted)
                     {
                         needDoubleConfirm = !CLIInstance.GetParameterValueBool("force", false);
+
+                        txtLoopCount.Text = CLIInstance.GetParameterValue("loopcount", "1");
 
                         btnOK.PerformClick();
                     }
@@ -518,21 +554,6 @@ namespace ProvisioningBuildTools.SelectForm
                 IssueExecConetent();
                 IssueBtnOk();
             }
-        }
-
-        private void cmbSerialNumber_SelectedValueChanged(object sender, EventArgs e)
-        {
-            //ProvisioningTesterInfo provisioningTesterInfo = input.GetProvisioningTesterInfo(cmbProvisioningPorject.SelectedItem.ToString());
-
-            //
-
-            //promiseCityDict?.Clear();
-            //promiseCityDict = LoopTestHelp.GetAllSkus(Path.Combine(txtPackageFolder.Text, cmbPackageName.Text), cmbSerialNumber.Text, provisioningPackageInfo.CurrentGenealogyFile, provisioningPackageInfo.NodeNameForSN, LogNotify);
-
-            //if (promiseCityDict.Count != 0)
-            //{
-            //    cmbPromiseCity.Items.AddRange(promiseCityDict.Keys.ToArray());
-            //}
         }
 
         private void txtLoopCount_Leave(object sender, EventArgs e)

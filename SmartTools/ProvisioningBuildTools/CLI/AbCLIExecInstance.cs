@@ -57,6 +57,14 @@ namespace ProvisioningBuildTools.CLI
 
         protected void DistinctParameterAlias()
         {
+            foreach (var item in RequiredParas.Concat(SupportedParas).Distinct())
+            {
+                if (!ParameterAlias.ContainsKey(item))
+                {
+                    ParameterAlias[item] = Enumerable.Empty<string>().ToArray();
+                }
+            }
+
             StringBuilder totalAlias = new StringBuilder(",");
 
             ParameterAlias = ParameterAlias.Where(alias => SupportedParas.Contains(alias.Key, StringComparer.InvariantCultureIgnoreCase)).Select(alias =>

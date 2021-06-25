@@ -158,22 +158,30 @@ namespace ProvisioningBuildTools.SelectInput
 
                         IEnumerable<string> nodeNameForSNs = new string[] { ProvisioningTesterInfo.LocalProjectInfo.NodeNameForSN, "SystemDutSn", "ComputeDutSn", "SerialNumber" }.Distinct();
 
-                        XDocument xDocument = XDocument.Load(selectedGenealogy);
-
-                        foreach (var nodeNameForSN in nodeNameForSNs)
+                        try
                         {
-                            if (string.IsNullOrWhiteSpace(nodeNameForSN))
-                            {
-                                continue;
-                            }
+                            XDocument xDocument = XDocument.Load(selectedGenealogy);
 
-                            SerialNumberList = xDocument.Descendants(nodeNameForSN).Select(element => element.Value).ToList();
-
-                            if (SerialNumberList.Count != 0)
+                            foreach (var nodeNameForSN in nodeNameForSNs)
                             {
-                                NodeNameForSN = nodeNameForSN;
-                                break;
+                                if (string.IsNullOrWhiteSpace(nodeNameForSN))
+                                {
+                                    continue;
+                                }
+
+                                SerialNumberList = xDocument.Descendants(nodeNameForSN).Select(element => element.Value).ToList();
+
+                                if (SerialNumberList.Count != 0)
+                                {
+                                    NodeNameForSN = nodeNameForSN;
+                                    break;
+                                }
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            SerialNumberList = new List<string>();
+                            ProvisioningTesterInfo.LocalProjectInfo.LogNotify.WriteLog($"a bad input genealogy file:{Environment.NewLine}{selectedGenealogy}{Environment.NewLine}{ex.Message}",true);
                         }
                     }
                     else
