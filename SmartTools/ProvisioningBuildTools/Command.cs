@@ -1576,15 +1576,26 @@ namespace ProvisioningBuildTools
 
                 if (hasSKU)
                 {
+                    bool testmode = false;
+                    string tempFolder = null;
+
+                    if (testmode)
+                    {
+                        tempFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Temp", Guid.NewGuid().ToString());
+
+                        if (!Directory.Exists(tempFolder))
+                        {
+                            Directory.CreateDirectory(tempFolder);
+                        }
+                    }
+
                     foreach (var item in skuDocumentDict)
                     {
                         logNotify.WriteLog($"Current SKU:{item.Key.Split('_').Last()} start,Total SKU:{sku}");
 
-                        bool testmode = false;
-
                         if (testmode)
                         {
-                            item.Value.Save($"{Path.Combine(Path.GetDirectoryName(genealogyFile), Path.GetFileNameWithoutExtension(genealogyFile))}_{i}_{item.Key.Replace(".", "_")}{Path.GetExtension(genealogyFile)}");
+                            item.Value.Save($"{Path.Combine(tempFolder, Path.GetFileNameWithoutExtension(genealogyFile))}_{i}_{item.Key.Replace(".", "_")}{Path.GetExtension(genealogyFile)}");
                         }
                         else
                         {
