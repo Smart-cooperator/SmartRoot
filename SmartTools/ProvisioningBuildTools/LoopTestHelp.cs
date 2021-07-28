@@ -85,7 +85,7 @@ namespace ProvisioningBuildTools
                         {
                             if (!softwareAssemblyFilters.ContainsKey(ma.Groups["subProject"].Value))
                             {
-                                softwareAssemblyFilters[ma.Groups["subProject"].Value] = string.Join(",", stageConfigurationDocument.Descendants($"{ma.Groups["subProject"].Value}SwAssemblyPartNumbers").FirstOrDefault().Descendants("SwAssemblyPartNumber").Select(e => e.Value));
+                                softwareAssemblyFilters[ma.Groups["subProject"].Value] = string.Join(",", stageConfigurationDocument.Descendants($"{ma.Groups["subProject"].Value}SwAssemblyPartNumbers").FirstOrDefault()?.Descendants("SwAssemblyPartNumber")?.Select(e => e.Value)??Enumerable.Empty<string>());
                             }
 
                             ma = ma.NextMatch();
