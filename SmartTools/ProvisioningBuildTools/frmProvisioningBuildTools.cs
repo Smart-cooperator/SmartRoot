@@ -509,7 +509,7 @@ namespace ProvisioningBuildTools
         {
             try
             {
-                if (backGroundCommand.IsBusy)
+                if (backGroundCommand.IsBusy && MessageBox.Show("Are you sure to abort next process?","Double confirm",MessageBoxButtons.YesNo)==DialogResult.Yes)
                 {
                     btnAbort.Enabled = false;
                     backGroundCommand.Abort();
@@ -525,7 +525,7 @@ namespace ProvisioningBuildTools
         {
             try
             {
-                if (backGroundCommand.IsBusy)
+                if (backGroundCommand.IsBusy && MessageBox.Show("Are you sure to kill current process?", "Double confirm", MessageBoxButtons.YesNo) == DialogResult.Yes)
                 {
                     btnKill.Enabled = false;
                     backGroundCommand.Kill();
