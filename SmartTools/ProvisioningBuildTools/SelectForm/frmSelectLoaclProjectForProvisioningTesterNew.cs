@@ -353,10 +353,16 @@ namespace ProvisioningBuildTools.SelectForm
 
                 promiseCityDict = LoopTestHelp.GetAllSkus(Path.Combine(txtPackageFolder.Text, cmbPackageName.Text), provisioningPackageInfo.CurrentGenealogyFile, LogNotify);
 
-                if (promiseCityDict.Count != 0)
+                if (promiseCityDict!=null && promiseCityDict.Count != 0)
                 {
                     cmbPromiseCity.Items.AddRange(promiseCityDict.Keys.ToArray());
                     cmbPromiseCity.SelectedIndex = 0;
+                }
+                else
+                {
+                    cmbPromiseCity.Items.Clear();
+                    cmbPromiseCity.SelectedIndex = -1;
+                    chkSKUList.Items.Clear();
                 }
 
                 IssueExecConetent();

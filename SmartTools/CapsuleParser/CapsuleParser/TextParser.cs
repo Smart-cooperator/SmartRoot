@@ -29,12 +29,14 @@ namespace CapsuleParser
                 GenerateInfBinFileMap(dirPath);
                 UpdateCapsuleVersion(configFile, mapInfBinFile);
 
-                StreamWriter writer = File.CreateText(configFile);
-
-                writer.Write(fileSaver.ToString());
-
-                writer.Close();
-
+                using (FileStream fs = new FileStream(configFile, FileMode.Create, FileAccess.Write, FileShare.Write))
+                {
+                    using (StreamWriter writer = new StreamWriter(fs, new UTF8Encoding(false)))
+                    //using (StreamWriter writer = new StreamWriter(fs, Encoding.UTF8))
+                    {
+                        writer.Write(fileSaver.ToString());
+                    }
+                }
             }
             else if (argTable.ContainsKey("InfFile") && argTable.ContainsKey("BinFile"))
             {
@@ -42,12 +44,14 @@ namespace CapsuleParser
 
                 UpdateCapsuleVersion(configFile, mapInfBinFile);
 
-                StreamWriter writer = File.CreateText(configFile);
-
-                writer.Write(fileSaver.ToString());
-
-                writer.Close();
-
+                using (FileStream fs = new FileStream(configFile, FileMode.Create, FileAccess.Write, FileShare.Write))
+                {
+                    using (StreamWriter writer = new StreamWriter(fs, new UTF8Encoding(false)))
+                    //using (StreamWriter writer = new StreamWriter(fs, Encoding.UTF8))
+                    {
+                        writer.Write(fileSaver.ToString());
+                    }
+                }
             }
             else
             {
@@ -95,7 +99,7 @@ namespace CapsuleParser
                         if (item.Key.ToLower().Contains(infFilePath.ToLower()))
                         {
                             Dictionary<string, string> versionDic = ParseVersionFromBinFile(item.Value);
-                            
+
                             UpdateVersionLine(rd, versionDic);
                         }
                     }
@@ -111,14 +115,14 @@ namespace CapsuleParser
             rd.Close();
         }
 
-        public static Dictionary<string,string> ParseVersionFromBinFile(string binFile)
+        public static Dictionary<string, string> ParseVersionFromBinFile(string binFile)
         {
             Dictionary<string, string> versionMap = new Dictionary<string, string>();
             string nameonly = Path.GetFileName(binFile);
             string verstr = nameonly.Substring(nameonly.LastIndexOf('_') + 1);
             string[] verparts = verstr.Split('.');
 
-            if(verparts.Length == 4)
+            if (verparts.Length == 4)
             {
                 versionMap.Add("major", verparts[0]);
                 versionMap.Add("minor", verparts[1]);
@@ -155,13 +159,13 @@ namespace CapsuleParser
             {
                 string textToRepace = string.Empty;
 
-                if(oneLineText.ToLower().Contains("<major>") == true)
+                if (oneLineText.ToLower().Contains("<major>") == true)
                 {
                     textToRepace = "<major>" + versionDic["major"] + "</major>";
                     textToRepace = oneLineText.Substring(0, oneLineText.IndexOf("<major>")) + textToRepace;
                     fileSaver.AppendLine(textToRepace);
                 }
-                else if(oneLineText.ToLower().Contains("<minor>") == true)
+                else if (oneLineText.ToLower().Contains("<minor>") == true)
                 {
                     textToRepace = "<minor>" + versionDic["minor"] + "</minor>";
                     textToRepace = oneLineText.Substring(0, oneLineText.IndexOf("<minor>")) + textToRepace;
