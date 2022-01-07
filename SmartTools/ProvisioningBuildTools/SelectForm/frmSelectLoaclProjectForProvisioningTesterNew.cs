@@ -276,12 +276,19 @@ namespace ProvisioningBuildTools.SelectForm
                 || string.IsNullOrWhiteSpace(txtPackageFolder.Text.ToString())
                 || string.IsNullOrWhiteSpace(cmbSerialNumber.SelectedItem?.ToString())
                 || string.IsNullOrWhiteSpace(cmbSlot.SelectedItem?.ToString())
-                 || string.IsNullOrWhiteSpace(rtbExec.Text.ToString()))
+                 //|| string.IsNullOrWhiteSpace(rtbExec.Text.ToString())
+                 )
             {
                 btnOK.Enabled = false;
             }
             else
             {
+                if (string.IsNullOrWhiteSpace(rtbExec.Text.ToString()))
+                {
+                    btnOK.Enabled = true;
+                    return;
+                }
+
                 Regex[] regices = new Regex[] { new Regex(@"-Task\s+\S+", RegexOptions.IgnoreCase), new Regex(@"-Cmd\s+\S+", RegexOptions.IgnoreCase) };
 
                 btnOK.Enabled = false;
@@ -353,7 +360,7 @@ namespace ProvisioningBuildTools.SelectForm
 
                 promiseCityDict = LoopTestHelp.GetAllSkus(Path.Combine(txtPackageFolder.Text, cmbPackageName.Text), provisioningPackageInfo.CurrentGenealogyFile, LogNotify);
 
-                if (promiseCityDict!=null && promiseCityDict.Count != 0)
+                if (promiseCityDict != null && promiseCityDict.Count != 0)
                 {
                     cmbPromiseCity.Items.AddRange(promiseCityDict.Keys.ToArray());
                     cmbPromiseCity.SelectedIndex = 0;
@@ -462,7 +469,7 @@ namespace ProvisioningBuildTools.SelectForm
                                 succcess = Utility.SetSelectedItem(cmbSlot, requiredPara.Value, false, true);
                                 break;
                             case "task":
-                                succcess = Utility.SetSelectedItem(lsbTotal, lsbSelected, requiredPara.Value.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries), true, true);
+                                succcess = true | Utility.SetSelectedItem(lsbTotal, lsbSelected, requiredPara.Value.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries), true, true);
                                 break;
                             case "promisecity":
                                 succcess = Utility.SetSelectedItem(cmbPromiseCity, requiredPara.Value, false, true);
