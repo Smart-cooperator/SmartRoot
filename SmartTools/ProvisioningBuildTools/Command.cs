@@ -48,6 +48,7 @@ namespace ProvisioningBuildTools
         public const string CHECKOUTBRANCH = "git checkout {0}";
         public const string FETCHBRANCH = "git fetch";
         public const string FETCHALL = "git fetch --all";
+        public const string PRUNE = "git remote prune origin";
         public const string PULLBRANCH = "git pull";
         public static readonly string CREATEPERSONALBRANCH = $"git checkout -b personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
         public static readonly string PERSONAL = $"personal/{new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)).Name}/{{0}}";
@@ -415,6 +416,11 @@ namespace ProvisioningBuildTools
 
                         if (temp.EndsWith(Environment.NewLine) || temp.EndsWith("\n") || stringBufferError.Count == 0)
                         {
+                            while (stringBuffer.Count != 0)
+                            {
+                                Thread.Sleep(1);
+                            }
+
                             commandNotify?.WriteErrorOutPut(id, temp);
                             tempErrorOutput.Append(temp);
                             buffer.Clear();
@@ -470,7 +476,7 @@ namespace ProvisioningBuildTools
                     DateTime dateTime = DateTime.Now;
 
                     while (!stringBuffer.IsCompleted || !stringBufferError.IsCompleted)
-                    {                        
+                    {
                         if (DateTime.Now.Subtract(dateTime).TotalSeconds > 5)
                         {
                             stringBuffer.Dispose();
@@ -916,7 +922,19 @@ namespace ProvisioningBuildTools
                 throw new Exception($"{projectPath} is not an repos folder");
             }
 
-            return Run(projectPath, FETCHALL, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+            CommandResult commandResult = Run(projectPath, FETCHALL, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+            if (!string.IsNullOrEmpty(commandResult.ErrorOutput) && commandResult.ErrorOutput.Contains(PRUNE))
+            {
+                commandResult = Run(projectPath, PRUNE, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+
+                if (commandResult.ExitCode == 0)
+                {
+                    commandResult = Run(projectPath, FETCHALL, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
+                }
+            }
+
+            return commandResult;
         }
 
         public static CommandResult GitPull(string projectPath, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
@@ -1638,6 +1656,10 @@ namespace ProvisioningBuildTools
         public static CommandResult RunProvisioningTester(bool useExternalProvisioningTester, string provisioningPackage, string serialNumber, string args, ICommandNotify commandNotify = null, ILogNotify logNotify = null, CancellationTokenSource cancellationTokenSource = null, CancellationTokenSource cancellationTokenSourceForKill = null)
         {
             string logFolder = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "ProvisioningTesterLogs", $"{DateTime.Now.ToString("yyyyMMddHHmmss")}_{serialNumber}");
+            if (!Directory.Exists(logFolder))
+            {
+                Directory.CreateDirectory(logFolder);
+            }
             string logFolderConfigFile = Path.Combine(provisioningPackage, "TesterConfiguration.xml");
 
             if (File.Exists(logFolderConfigFile) && Path.GetExtension(logFolderConfigFile).ToLower() == ".xml")

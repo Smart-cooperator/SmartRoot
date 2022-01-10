@@ -95,7 +95,7 @@ namespace ProvisioningBuildTools.SelectInput
 
                     IEnumerable<string> genealogies = Enumerable.Empty<string>();
 
-                    IEnumerable<string> inputGenealogyFileNames = new string[] { ProvisioningTesterInfo.LocalProjectInfo.InputGenealogyFileName, "InputGenealogy*.xml", "Genealogy*.xml" }.Distinct(StringComparer.InvariantCultureIgnoreCase);
+                    IEnumerable<string> inputGenealogyFileNames = new string[] { ProvisioningTesterInfo.LocalProjectInfo.InputGenealogyFileName, "InputGenealogy*.xml", "Genealogy*.xml", "DeviceInputs*.xml" }.Distinct(StringComparer.InvariantCultureIgnoreCase);
 
                     foreach (var inputGenealogyFileName in inputGenealogyFileNames)
                     {
@@ -201,9 +201,10 @@ namespace ProvisioningBuildTools.SelectInput
                         taskCodes = getTaskCodeManager.GetTaskCode(provisioningPackage, Path.Combine(provisioningPackage, Command.ProvisioningTester));
                     }
 
-                    if (UseExternalProvisioningTester || taskCodes == null || taskCodes.Length == 0)
+                    //if (UseExternalProvisioningTester || taskCodes == null || taskCodes.Length == 0)
+                    if (UseExternalProvisioningTester)
                     {
-                        mUseExternalProvisioningTester = true;
+                        //mUseExternalProvisioningTester = true;
 
                         try
                         {
