@@ -148,7 +148,7 @@ namespace ProvisioningBuildTools
 
                                         if (!string.IsNullOrEmpty(subProject))
                                         {
-                                            sku = $"{sku}_{subProject.Replace(" ",string.Empty)}";
+                                            sku = $"{subProject.Replace(" ", string.Empty)}_{sku}";
                                         }
 
                                         partNumber = skuElement.Attribute("ImageRegionPartNumber").Value;
