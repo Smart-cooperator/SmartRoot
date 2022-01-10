@@ -488,7 +488,8 @@ namespace ProvisioningBuildTools.SelectForm
                                     {
                                         if (sku.Contains("_"))
                                         {
-                                            preVersion = sku.Split('_').First();
+                                            string[] temps = sku.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
+                                            preVersion = string.Join("_", temps.Take(temps.Length - 1));
                                             skus = skus.Append(sku);
                                         }
                                         else
