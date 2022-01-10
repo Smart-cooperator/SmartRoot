@@ -466,6 +466,23 @@ namespace ProvisioningBuildTools
                     errorOutputWaitHandle.WaitOne(100);
                     stringBuffer.CompleteAdding();
                     stringBufferError.CompleteAdding();
+
+                    DateTime dateTime = DateTime.Now;
+
+                    while (stringBuffer.Count != 0 || stringBufferError.Count != 0)
+                    {                        
+                        if (DateTime.Now.Subtract(dateTime).TotalSeconds > 5)
+                        {
+                            stringBuffer.Dispose();
+                            stringBufferError.Dispose();
+                            Thread.Sleep(100);
+                            break;
+                        }
+                        else
+                        {
+                            Thread.Sleep(100);
+                        }
+                    }
                 }
 
                 //p.CancelErrorRead();
