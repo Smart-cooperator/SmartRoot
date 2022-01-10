@@ -469,7 +469,7 @@ namespace ProvisioningBuildTools
 
                     DateTime dateTime = DateTime.Now;
 
-                    while (stringBuffer.Count != 0 || stringBufferError.Count != 0)
+                    while (!stringBuffer.IsCompleted || !stringBufferError.IsCompleted)
                     {                        
                         if (DateTime.Now.Subtract(dateTime).TotalSeconds > 5)
                         {
