@@ -111,7 +111,7 @@ namespace ProvisioningBuildTools
                     }
                     catch (Exception)
                     {
-                        ;                       
+                        ;
                     }
 
                     if (subProjectList.Count == 0)
@@ -142,9 +142,16 @@ namespace ProvisioningBuildTools
                             {
                                 foreach (var skuElement in versionElement.Descendants("Image"))
                                 {
-                                    if (!string.IsNullOrEmpty(skuElement.Attribute("ImageNumber").Value))
+                                    if (!string.IsNullOrEmpty(skuElement.Attribute("ImageNumber").Value) || !string.IsNullOrEmpty(skuElement.Attribute("ImageRegionPartNumber").Value))
                                     {
-                                        sku = $"{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageNumber").Value}";
+                                        if (!string.IsNullOrEmpty(skuElement.Attribute("ImageNumber").Value))
+                                        {
+                                            sku = $"{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageNumber").Value}";
+                                        }
+                                        else
+                                        {
+                                            sku = $"{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageRegionPartNumber").Value}";
+                                        }
 
                                         if (!string.IsNullOrEmpty(subProject))
                                         {
