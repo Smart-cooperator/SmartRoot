@@ -1601,7 +1601,7 @@ namespace ProvisioningBuildTools
             UnblockFile(provisioningPackage, commandNotify, logNotify, cancellationTokenSource, cancellationTokenSourceForKill);
 
             bool hasSKU = skuDocumentDict?.Count > 0;
-            string sku = string.Join(",", skuDocumentDict.Keys.Select(key => key.Split('_').Last()));
+            string sku = string.Join(",", skuDocumentDict.Keys);
 
             logNotify.WriteLog($"SKU:{sku} ,LoopCount:{loopCount}");
 

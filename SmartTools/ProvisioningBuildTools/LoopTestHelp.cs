@@ -215,11 +215,11 @@ namespace ProvisioningBuildTools
                                             {
                                                 if (skuTemp.Contains("WI-FI") || skuTemp.Contains("LTE"))
                                                 {
-                                                    sku = $"{string.Join(",", skuTemp.Split(',').Take(2))}_{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageNumber").Value}".Replace(" ", "");
+                                                    sku = $"{string.Join("_", skuTemp.Split(',').Take(2))}_{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageNumber").Value}".Replace(" ", "");
                                                 }
                                                 else
                                                 {
-                                                    sku = $"{string.Join(",", skuTemp.Split(',').Take(1))}_{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageNumber").Value}".Replace(" ", "");
+                                                    sku = $"{string.Join("_", skuTemp.Split(',').Take(1))}_{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageNumber").Value}".Replace(" ", "");
                                                 }
 
                                                 sku = sku.Replace(" ", "");
