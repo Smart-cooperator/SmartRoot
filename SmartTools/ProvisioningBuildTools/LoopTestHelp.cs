@@ -103,23 +103,42 @@ namespace ProvisioningBuildTools
 
                     //foreach (var filter in softwareAssemblyFilters)
 
-                    List<string> subProjectList = new List<string>();
+                    //List<string> subProjectList = new List<string>();
+                    List<string> skuList = new List<string>();
 
                     try
                     {
-                        subProjectList.AddRange(softwareAssemblyDocument.Descendants("SoftwareAssembly").Select(ele => ele.Attribute("Description").Value.Split(',')[2]).Distinct());
+                        //subProjectList.AddRange(softwareAssemblyDocument.Descendants("SoftwareAssembly").Select(ele => ele.Attribute("Description").Value.Split(',')[2]).Distinct());
+                        foreach (var description in softwareAssemblyDocument.Descendants("SoftwareAssembly").Select(ele => ele.Attribute("Description").Value.Split(',')))
+                        {
+                            if (description[3] == "WI-FI" || description[3] == "LTE")
+                            {
+                                skuList.Add(string.Join(",", description.Skip(2).Take(4)));
+                            }
+                            else
+                            {
+                                skuList.Add(string.Join(",", description.Skip(2).Take(3)));
+                            }
+                        }
+
+                        skuList = skuList.Distinct().ToList();
                     }
                     catch (Exception)
                     {
                         ;
                     }
 
-                    if (subProjectList.Count == 0)
+                    //if (subProjectList.Count == 0)
+                    //{
+                    //    subProjectList.Add(string.Empty);
+                    //}
+
+                    if (skuList.Count == 0)
                     {
-                        subProjectList.Add(string.Empty);
+                        skuList.Add(string.Empty);
                     }
 
-                    foreach (var subProject in subProjectList)
+                    foreach (var skuTemp in skuList)
                     {
                         //string promiseCityFinal = string.Join("_", filter.Key, promiseCity).Trim('_');
                         //string promiseCityFinal = string.Join("_", subProject.Replace(" ", ""), promiseCity).Trim('_');
@@ -144,29 +163,71 @@ namespace ProvisioningBuildTools
                                 {
                                     if (!string.IsNullOrEmpty(skuElement.Attribute("ImageNumber").Value) || !string.IsNullOrEmpty(skuElement.Attribute("ImageRegionPartNumber").Value))
                                     {
-                                        if (!string.IsNullOrEmpty(skuElement.Attribute("ImageNumber").Value))
-                                        {
-                                            sku = $"{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageNumber").Value}";
-                                        }
-                                        else
-                                        {
-                                            sku = $"{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageRegionPartNumber").Value}";
-                                        }
+                                        //if (!string.IsNullOrEmpty(skuElement.Attribute("ImageNumber").Value))
+                                        //{
+                                        //    sku = $"{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageNumber").Value}";
+                                        //}
+                                        //else
+                                        //{
+                                        //    sku = $"{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageRegionPartNumber").Value}";
+                                        //}
 
-                                        if (!string.IsNullOrEmpty(subProject))
-                                        {
-                                            sku = $"{subProject.Replace(" ", string.Empty)}_{sku}";
-                                        }
+                                        //if (!string.IsNullOrEmpty(subProject))
+                                        //{
+                                        //    sku = $"{subProject.Replace(" ", string.Empty)}_{sku}";
+                                        //}
 
                                         partNumber = skuElement.Attribute("ImageRegionPartNumber").Value;
 
                                         //XElement currentSoftwareAssembly = softwareAssemblyDocument.Descendants("SoftwareAssembly").FirstOrDefault(element => element.Element("ImageConfig").Attribute("PartNumber").Value == partNumber && (string.IsNullOrEmpty(filter.Value) || filter.Value.ToUpper().Contains(element.Attribute("PartNumber").Value.ToUpper())));
-                                        XElement currentSoftwareAssembly = softwareAssemblyDocument.Descendants("SoftwareAssembly").FirstOrDefault(element => element.Element("ImageConfig").Attribute("PartNumber").Value == partNumber && (string.IsNullOrEmpty(subProject) || element.Attribute("Description").Value.ToUpper().Contains($",{subProject.ToUpper()},")));
+                                        //XElement currentSoftwareAssembly = softwareAssemblyDocument.Descendants("SoftwareAssembly").FirstOrDefault(element => element.Element("ImageConfig").Attribute("PartNumber").Value == partNumber && (string.IsNullOrEmpty(subProject) || element.Attribute("Description").Value.ToUpper().Contains($",{subProject.ToUpper()},")));
+                                        XElement currentSoftwareAssembly = softwareAssemblyDocument.Descendants("SoftwareAssembly").FirstOrDefault(element => element.Element("ImageConfig").Attribute("PartNumber").Value == partNumber && (string.IsNullOrEmpty(skuTemp) || element.Attribute("Description").Value.ToUpper().Contains(skuTemp.ToUpper())));
 
                                         if (currentSoftwareAssembly == null)
                                         {
                                             //logNotify.WriteLog($"ImageRegionPartNumber {partNumber} of SKU {sku} not found in {softwareAssemblyFile}", true);
                                             continue;
+                                        }
+
+                                        if (string.IsNullOrEmpty(skuTemp))
+                                        {
+                                            if (!string.IsNullOrEmpty(skuElement.Attribute("ImageNumber").Value))
+                                            {
+                                                sku = $"{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageNumber").Value}";
+                                            }
+                                            else
+                                            {
+                                                sku = $"{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageRegionPartNumber").Value}";
+                                            }
+
+                                            int i = 0;
+
+                                            while (skuDocumentDict.ContainsKey($"{sku}_{i}"))
+                                            {
+                                                i++;
+                                            }
+
+                                            sku = $"{sku}_{i}";
+                                        }
+                                        else
+                                        {
+                                            if (!string.IsNullOrEmpty(skuElement.Attribute("ImageNumber").Value))
+                                            {
+                                                if (skuTemp.Contains("WI-FI") || skuTemp.Contains("LTE"))
+                                                {
+                                                    sku = $"{string.Join(",", skuTemp.Split(',').Take(2))}_{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageNumber").Value}".Replace(" ", "");
+                                                }
+                                                else
+                                                {
+                                                    sku = $"{string.Join(",", skuTemp.Split(',').Take(1))}_{versionElement.Attribute("Version").Value}_{skuElement.Attribute("ImageNumber").Value}".Replace(" ", "");
+                                                }
+
+                                                sku = sku.Replace(" ", "");
+                                            }
+                                            else
+                                            {
+                                                sku = skuTemp.Replace(" ","").Replace(",","_");
+                                            }
                                         }
 
                                         Func<string, string, XDocument> getGenealogyDocument = (sn, nodeNameForSN) =>
