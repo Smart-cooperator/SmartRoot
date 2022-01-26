@@ -25,7 +25,7 @@ namespace ProvisioningBuildTools
         public static readonly string EWDKPATH = @"C:\17134.1.3";
         public static readonly string EWDKCMD = @"LaunchBuildEnv.cmd";
         public const string CMD = "cmd";
-        public const string NUGETPACKAGECONFIGCMD = @"Nuget Install {0} -ConfigFile Nuget.config -OutputDirectory .\packages";
+        public const string NUGETPACKAGECONFIGCMD = @"%LOCALAPPDATA%\NuGet\nuget.exe Install {0} -ConfigFile Nuget.config -OutputDirectory .\packages";
         public static readonly string REPOSFOLDER = $@"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\source\repos\";
         public const string BUILDSCRIPTS = "BuildScripts";
         public static readonly string OPENREPOSSLN = @"""C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\Common7\IDE\devenv.exe"" Provisioning.sln";
