@@ -205,7 +205,7 @@ namespace ProvisioningBuildTools
                         tempFinished = true;
                     }
 
-                    if (clear || logBufferLines + logCurrentLines > 10000)
+                    if (clear || logBufferLines + logCurrentLines > 1000)
                     {
                         logNeedClear = true;
                     }
