@@ -24,7 +24,13 @@ namespace ProvisioningBuildTools
             this.notify = notify;
             richTextBox.SelectionChanged += richTextBox_SelectionChanged;
             richTextBox.KeyDown += richTextBox_KeyDown;
+            richTextBox.FindForm().Activated += richTextBox_Activated;
             logItemCollection = new BlockingCollection<LogItem>(new ConcurrentQueue<LogItem>());
+        }
+
+        private void richTextBox_Activated(object sender, EventArgs e)
+        {
+            richTextBox.Refresh();
         }
 
         private void richTextBox_KeyDown(object sender, KeyEventArgs e)
@@ -205,7 +211,7 @@ namespace ProvisioningBuildTools
                         tempFinished = true;
                     }
 
-                    if (clear || logBufferLines + logCurrentLines > 1000)
+                    if (clear || logBufferLines + logCurrentLines > 10000)
                     {
                         logNeedClear = true;
                     }
@@ -283,8 +289,6 @@ namespace ProvisioningBuildTools
 
                             logBufferFinished = false;
                         }
-
-
                     }
 
                     if (DateTime.Now.Subtract(tempDateTime).TotalSeconds >= 3)
